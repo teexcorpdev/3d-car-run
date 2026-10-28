@@ -1854,7 +1854,10 @@ export class UI {
 
   /** Reset/disable a rewarded-ad button (text after use). */
   adButton(key: 'ad2x' | 'ad2xf' | 'adboost', state: 'ready' | 'used', usedText = '') {
-    const b = $(this.root, `[data-k="${key}"]`);
+    // v4.0.2 dropped the Head Start ad button ('adboost') from the web UI: a missing button is skipped —
+    // throwing here stopped openTracks half-way (Play → no Tracks screen)
+    const b = this.root.querySelector<HTMLElement>(`[data-k="${key}"]`);
+    if (!b) return;
     if (!b.dataset.ready) b.dataset.ready = b.innerHTML;
     if (state === 'ready') {
       b.innerHTML = b.dataset.ready;

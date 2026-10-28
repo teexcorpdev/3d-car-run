@@ -4,6 +4,13 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-29 — fix: Play opened no Tracks screen on the web build (branch feat/portal-hooks-v4)
+- Bug (owner, Playgama mobile + desktop): tap Play → nothing, game stuck on Home. `openTracks()` calls
+  `ui.adButton('adboost')`, but v4.0.2 removed that button from the web UI → `null.dataset` threw half-way.
+  Also on plain `v4.0` web builds (TikTok native uses the canvas UI, so it never showed there).
+- Fix: `UI.adButton` skips a missing button. Typecheck + 15 suites pass; xwave-port Playgama test now taps through
+  Play → Tracks → race → Retry / Home, every Home button, new-player training card (36/36).
+
 ## 2026-10-29 — web-portal hooks on v4.0.2 (branch feat/portal-hooks-v4, for xwave-port)
 - Done: `src/portal.ts` — a portal page defines `window.__PORTAL__`; without it the web and native builds are unchanged.
   Portal mode: ads via the portal SDK (after the native provider), game_ready / gameplay on-off (inside the guarded frame),

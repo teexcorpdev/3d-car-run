@@ -4,6 +4,14 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-29 — web-portal hooks on v4.0.2 (branch feat/portal-hooks-v4, for xwave-port)
+- Done: `src/portal.ts` — a portal page defines `window.__PORTAL__`; without it the web and native builds are unchanged.
+  Portal mode: ads via the portal SDK (after the native provider), game_ready / gameplay on-off (inside the guarded frame),
+  portal pause + mute, portal language, `adReady()` → `body.portal-noad` hides watch-ad buttons; no real-money shop,
+  share / invite / perks, sign-in or ipapi.co (`body.portal` CSS + guards). Same hooks as `feat/portal-hooks` (main, v1.0.9).
+- Checked: typecheck + 15 test suites pass; Playgama build v4.0.2 mock-tested 28/28 in `D:\Workspace\git\xwave-port`.
+- Next: owner tests on Playgama. Not pushed.
+
 ## 2026-10-25 — v4.0.2 later (branch `v4.0`, not pushed): load size, rides, owner fixes
 - **Load size (TikTok):** game.js 2.84 MB → 1.23 MB. The X1 GLB is no longer base64 inside game.js: it ships as
   `tiktok/assets/xwave-x1-*.bin`, read through `setPackageReader(hs.packageReader())` (TikTok Minis file system;

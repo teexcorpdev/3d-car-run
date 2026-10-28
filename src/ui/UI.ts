@@ -729,7 +729,7 @@ export class UI {
       <div class="panel cont-panel cr">
         <div class="cr-title">CRASHED!</div>
         <div class="cr-sub">Keep your run going?</div>
-        <button class="btn big gold cr-go" data-a="contad"><span class="cr-ad">${ICON.play} AD</span><span class="cr-play">${ICON.play}</span><span class="cr-lbl"><b>CONTINUE</b><small>Revive · short ad</small></span></button>
+        <button class="btn big gold cr-go" data-a="contad"><span class="cr-play">${ICON.play}<em>AD</em></span><span class="cr-lbl"><b>CONTINUE</b><small>Revive · short ad</small></span></button>
         <div class="cr-bar"><i data-k="contbar"></i></div>
         <div class="cr-sec"><span data-k="contsec">7</span> s</div>
         <div class="cr-row"><button class="btn" data-a="contretry">${ICON.retry} Restart</button><button class="btn" data-a="home">${ICON.home} Home</button></div>

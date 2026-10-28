@@ -749,8 +749,11 @@ html, body { background: var(--bg); }
 #ui #continue .cr-title { font-family: var(--font-title); font-size: 38px; line-height: 1.05; color: #ffd36a; text-shadow: 0 3px 0 #6b3a12, 0 6px 14px rgba(0,0,0,.6); }
 #ui #continue .cr-sub { margin-top: 6px; font: 700 14px/1.3 var(--font-body); color: #e8cfa0; }
 #ui #continue .cr-go { position: relative; margin-top: 20px; height: 80px; border-radius: 20px !important; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 16px !important; }
-#ui #continue .cr-play { width: 42px; height: 42px; flex: none; border-radius: 50%; background: #3a1d06; display: grid; place-items: center; color: #ffd36a; }
-#ui #continue .cr-play svg { width: 20px; height: 20px; margin-left: 3px; }
+/* the "ad" mark sits inside the play disc (a floating badge was clipped by the button's top edge) */
+#ui #continue .cr-play { width: 50px; height: 50px; flex: none; border-radius: 50%; background: #3a1d06; box-shadow: inset 0 0 0 2px #ffd36a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #ffd36a; }
+#ui #continue .cr-play svg { width: 18px; height: 18px; margin-left: 3px; }
+#ui #continue .cr-play em { font: 800 10px/1 var(--font-body); font-style: normal; letter-spacing: 1px; }
 #ui #continue .cr-lbl { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; }
 #ui #continue .cr-lbl b { font-size: 26px; letter-spacing: .5px; }
 #ui #continue .cr-lbl small { margin-top: 5px; font: 800 13px var(--font-body); opacity: .85; }
@@ -791,7 +794,9 @@ html, body { background: var(--bg); }
 #ui #runrank.down .rp-bar em { background: repeating-linear-gradient(45deg, rgba(255,122,106,.55) 0 6px, rgba(255,122,106,.25) 6px 12px); }
 #ui #runrank .rp-note { margin-top: 6px; font: 800 12px var(--font-body); color: #c9ad80; }
 #ui #runrank .rp-ad { position: relative; margin-top: 16px; height: 54px; font-size: 19px; gap: 8px; justify-content: center; }
-#ui #runrank .rp-ad .cr-ad { background: #3a1d06; color: #ffd36a; border-color: #ffd36a; }
+/* "▶ AD" inline at the start of the button (as a floating badge it was clipped by the button's top edge) */
+#ui #runrank .rp-ad .cr-ad { position: static; flex: none; background: #3a1d06; color: #ffd36a; border-color: #ffd36a; padding: 3px 8px; }
+#ui #runrank .rp-ad .art-coin { flex: none; width: 24px; height: 24px; }
 #ui #runrank .rp-ad.used { opacity: .7; }
 #ui #runrank .rp-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
 #ui #runrank .rp-btns .btn { height: 50px; font-size: 15px; padding: 0 6px !important; justify-content: center; gap: 4px; min-width: 0; }

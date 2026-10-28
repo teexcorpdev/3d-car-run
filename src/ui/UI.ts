@@ -50,6 +50,7 @@ import { PRODUCTS, type Product } from '../meta/Shop.ts';
 import type { EventResult } from '../meta/Meta.ts';
 import type { CrashTip } from '../gameplay/CrashTip.ts';
 import { LANGS, getLang, setLang, translateTree, type Lang } from './i18n.ts';
+import { PORTAL } from '../portal.ts';
 
 /** track thumbnail: remixes reuse their world's art */
 const THUMBS: Record<string, string> = {
@@ -2448,10 +2449,14 @@ export class UI {
       <div class="inv panel"><span class="label">Your items</span>${inv}</div>
       <div class="xchg panel"><div class="xh"><b>Exchange coins → specials</b><span>${ICON.coin}${fmt(s.wallet)}</span></div><div class="xrow">${xchg}</div>
         <button class="axshop" data-a="bagbuy"><span class="axstrip">${ARSENAL.slice(0, 6).map((x) => `<i class="${(s.arsenal ?? []).includes(x.id) ? '' : 'lock'}" style="--xt:${x.tint}">${ITEM_ICON[x.base]}</i>`).join('')}</span><b>Outlaw Arsenal</b><small>${(s.arsenal ?? []).length} / ${ARSENAL.length} · from ${ICON.coin}${fmtK(ARSENAL[0].unlock)}</small><i class="chev">${ICON.chevR}</i></button></div>
-      ${specials.map(card).join('')}
+      ${
+        PORTAL // portal builds: only the coins → specials exchange, nothing for real money
+          ? ''
+          : `${specials.map(card).join('')}
       <div class="bhead out"><b>Coins</b></div>
       <div class="coingrid">${coins.map(card).join('')}</div>
-      <div class="label shopnote">Demo store — purchases are simulated, no payment is taken.</div>`;
+      <div class="label shopnote">Demo store — purchases are simulated, no payment is taken.</div>`
+      }`;
     this.setAll('wallet', fmt(s.wallet));
   }
 

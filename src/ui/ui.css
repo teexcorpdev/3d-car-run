@@ -2663,3 +2663,18 @@ svg.xpt { width: 1.05em; height: 1.05em; flex: none; vertical-align: -0.18em; }
 #classup .cu-rc, #classup .cu-ri { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 14px;
   background: rgba(10, 14, 40, .72); border: 1px solid rgba(255,255,255,.16); color: #fff; font-size: 17px; }
 #classup .cu-ri svg, #classup .cu-ri img { width: 26px; height: 26px; }
+
+/* web-portal builds (src/portal.ts): no share / perks / account / real-money items */
+body.portal [data-a="perk"],
+body.portal [data-a="share"],
+body.portal [data-a="restore"],
+body.portal [data-a="account"],
+body.portal [data-a="buy"],
+body.portal [data-k="saletag"] { display: none !important; }
+/* … and while the portal has no rewarded ad to offer: no "watch an ad" buttons */
+body.portal-noad [data-a="freepop"],
+body.portal-noad [data-a="ad2x"],
+body.portal-noad [data-a="adboost"],
+body.portal-noad [data-a="adfree"],
+body.portal-noad [data-a="contad"],
+body.portal-noad [data-a="popa"][data-v="watchad"] { display: none !important; }

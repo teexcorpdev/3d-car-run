@@ -70,6 +70,8 @@ import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
 import { platform } from './platform.ts';
+import { PORTAL } from './portal.ts';
+import { LANGS, type Lang } from './ui/i18n.ts';
 
 /**
  * Pilot name: letters (any script), digits, space and _ . - only, max 14.
@@ -586,13 +588,26 @@ export class Game {
         if (this.cloud.enabled) void this.cloudSync();
         this.bonusTick(); // back in the app: Gold Rush follows the clock
       }
-      try {
-        this.audio.setHidden(document.hidden);
-      } catch (e) {
-        console.warn('[audio] setHidden', e);
-      }
+      this.quiet.hidden = document.hidden;
+      this.syncQuiet();
     });
     window.setInterval(() => this.bonusTick(), 5000);
+    if (PORTAL) {
+      document.body.classList.add('portal'); // ui.css hides what portals don't allow
+      PORTAL.onPause((paused) => {
+        if (paused && this.state === 'run') this.pause();
+        this.quiet.portalPaused = paused;
+        this.syncQuiet();
+      });
+      PORTAL.onAudio((enabled) => {
+        this.quiet.portalMuted = !enabled;
+        this.syncQuiet();
+      });
+      // no rewarded ad to offer (no SDK, no fill) → ui.css hides every "watch an ad" button
+      const syncAdReady = () => document.body.classList.toggle('portal-noad', !PORTAL!.adReady());
+      syncAdReady();
+      window.setInterval(syncAdReady, 1000);
+    }
     // cloud save: hear back from Google / Apple sign-in, then line this device up with the account
     this.cloud.onSignedIn = () => {
       this.ui.toast('☁️ Signed in', '#4fc3ff');
@@ -619,12 +634,41 @@ export class Game {
     (window as unknown as { __xwave: Game }).__xwave = this;
   }
 
+  /** every reason the sound is off: tab hidden, portal pause, portal mute */
+  private quiet = { hidden: false, portalPaused: false, portalMuted: false };
+  private syncQuiet() {
+    const q = this.quiet;
+    try {
+      this.audio.setHidden(q.hidden || q.portalPaused || q.portalMuted);
+    } catch (e) {
+      console.warn('[audio] setHidden', e); // v4.0.2: once threw on TikTok iOS
+    }
+  }
+
+  /** portal: tell it when the player is actively racing (it times its own ads around that) */
+  private portalPlaying = false;
+  private syncPortalGameplay() {
+    if (!PORTAL) return;
+    const s = this.state;
+    const on = (s === 'countdown' || s === 'run' || s === 'dying' || s === 'respawn') && !this.ads?.showing;
+    if (on === this.portalPlaying) return;
+    this.portalPlaying = on;
+    PORTAL.gameplay(on);
+  }
+
+  /** the portal's language, when the game has it ('pt-BR' → 'pt') */
+  private portalLang(): Lang | undefined {
+    const code = PORTAL?.lang.toLowerCase().slice(0, 2);
+    return LANGS.find((l) => l.code === code)?.code;
+  }
+
   /** country: offline guess right away, then IP detection once (until the player picks one) */
   private initCountry() {
     if (!this.save.country) {
       this.save.country = guessCountry();
       this.persist();
     }
+    if (PORTAL) return; // portals allow no external hosts (ipapi.co)
     if (!this.save.countryAuto || this.save.perks.countryDetected) return;
     void detectCountry().then((c) => {
       this.save.perks.countryDetected = true;
@@ -721,7 +765,7 @@ export class Game {
     window.addEventListener('online', () => {
       if (this.ui.isShown('popup')) this.ui.closePopup();
     });
-    this.ui.applyLang(this.save.settings.lang ?? 'en');
+    this.ui.applyLang(this.save.settings.lang ?? this.portalLang() ?? 'en');
     const prevSeen = this.save.lastSeen;
     void this.seedDb();
     this.goHome();
@@ -729,6 +773,7 @@ export class Game {
     window.setTimeout(() => this.launchPopups(prevSeen), 700);
     this.clock.start();
     this.renderer.renderer.setAnimationLoop(() => this.frame());
+    PORTAL?.gameReady();
   }
 
   // =============================================================== states
@@ -959,8 +1004,8 @@ export class Game {
       this.ui.popup('gift', { coins: WELCOME_GIFT.coins, shield: WELCOME_GIFT.shield, hours: Math.floor((Date.now() - prevSeen) / 3600_000) });
       return;
     }
-    // a gentle rating ask after 8 runs (once, never rewarded — store rules)
-    if (!this.save.perks.rateAsked && !this.save.perks.rated && this.save.totalRuns >= 8) {
+    // a gentle rating ask after 8 runs (once, never rewarded — store rules); portals rate on their own page
+    if (!PORTAL && !this.save.perks.rateAsked && !this.save.perks.rated && this.save.totalRuns >= 8) {
       this.save.perks.rateAsked = true;
       this.persist();
       this.openPerk('rate');
@@ -1021,6 +1066,7 @@ export class Game {
   }
 
   private openPerk(kind: PerkKind, click = false) {
+    if (PORTAL && kind !== 'offline') return; // no share / invite / launch / entry / rate / install on portals
     if (click) this.audio.play('click');
     this.ui.popup(kind, { ...this.perkState(), vehicle: this.save.vehicle, avatar: this.save.avatar, name: this.save.name, entryReward: PERK.entry, launchReward: PERK.launch, shareReward: PERK.share, inviteReward: PERK.invite });
   }
@@ -1052,6 +1098,7 @@ export class Game {
 
   private popAction(a: string) {
     if (a.startsWith('go:')) return this.openPerk(a.slice(3) as PerkKind, true);
+    if (PORTAL && ['entry', 'launch', 'share', 'invite', 'install', 'sharelink', 'copylink'].includes(a)) return;
     const today = new Date().toISOString().slice(0, 10);
     const k = this.save.perks;
     if (a === 'entry') {
@@ -1150,7 +1197,7 @@ export class Game {
 
   private async buy(sku: string) {
     const p = productBySku(sku);
-    if (!p) return;
+    if (!p || PORTAL) return; // portal builds sell nothing for real money
     this.audio.play('click');
     if (platform.buy) {
       // v3 native: HSGame delivers the items into the profile (coins / no_ads) — never granted here
@@ -1224,6 +1271,7 @@ export class Game {
   }
 
   private share() {
+    if (PORTAL) return;
     void this.shareCard(this.state === 'finish' || this.state === 'gameover');
   }
 
@@ -2662,6 +2710,7 @@ export class Game {
     const t1 = PERF ? performance.now() : 0;
     try {
       this.syncHome();
+      this.syncPortalGameplay();
       this.renderer.render();
     } catch (e) {
       this.frameError('render', e);
@@ -4075,6 +4124,7 @@ export class Game {
     this.ui.accountSync({ enabled: this.cloud.enabled, signedIn: this.cloud.signedIn, email: a?.email ?? null, providers: a?.providers ?? [], lastSync: this.cloud.lastSync, codeFor: this.cloudCode || undefined, busy, msg: this.cloudMsg || undefined });
   }
   private async cloudAction(a: string, v?: string) {
+    if (PORTAL) return; // no accounts / cloud API on portals
     this.audio.play('click');
     this.cloudMsg = '';
     switch (a) {

@@ -4,12 +4,14 @@
  * Providers
  *  - H5GamesAdsProvider: Google "Ad Placement API" for H5 games (AdSense for Games / AdMob H5).
  *    Used automatically when the page defines `window.adBreak` (see README → Ads).
+ *  - PortalAdProvider: a web portal's SDK (Playgama, …) through window.__PORTAL__ (src/portal.ts).
  *  - MockAdProvider: a full-screen demo ad with a countdown, so every placement can be tried
  *    without an ad account. Used when no real SDK is present.
  *
  * Placements and frequency rules live in ADS (config below) — tune there.
  */
 import { platform } from '../platform.ts';
+import { PORTAL, type Portal } from '../portal.ts';
 
 export type RewardPlacement = 'continue' | 'double_coins' | 'free_coins' | 'head_start';
 export type InterPlacement = 'between_runs';
@@ -78,6 +80,20 @@ class H5GamesAdsProvider implements AdProvider {
     return new Promise<void>((resolve) => {
       this.adBreak({ type: 'next', name: placement, adBreakDone: () => resolve() });
     });
+  }
+}
+
+/** Web-portal ads: the portal's SDK shows them, the adapter reports back. */
+class PortalAdProvider implements AdProvider {
+  readonly name: string;
+  constructor(private portal: Portal) {
+    this.name = `portal-${portal.name}`;
+  }
+  rewarded(placement: RewardPlacement) {
+    return this.portal.rewarded(placement);
+  }
+  interstitial(placement: InterPlacement) {
+    return this.portal.interstitial(placement);
   }
 }
 
@@ -192,7 +208,8 @@ export class Ads {
 
   constructor(parent: HTMLElement, private hooks: AdHooks) {
     const w = window as unknown as { adBreak?: AdBreakFn };
-    this.provider = platformProvider ?? (typeof w.adBreak === 'function' ? new H5GamesAdsProvider(w.adBreak) : new MockAdProvider(parent));
+    this.provider =
+      platformProvider ?? (PORTAL ? new PortalAdProvider(PORTAL) : typeof w.adBreak === 'function' ? new H5GamesAdsProvider(w.adBreak) : new MockAdProvider(parent));
     this.lastInterstitial = performance.now();
   }
 

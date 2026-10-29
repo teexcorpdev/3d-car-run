@@ -2678,6 +2678,8 @@ body.portal-noad [data-a="popa"][data-v="watchad"] { display: none !important; }
    Tablet / iPad / laptop / desktop / large monitors (wider than 3:4, or 700 px wide). The 3D view, Home (key art + its blurred
    mirror on the sides) and the race HUD use the whole screen; every page and popup sits in one centred column
    of phone-like width, the rest of the screen darkened behind it. Phones (narrower than 3:4) are unchanged. */
+/* the loading screen's blurred side fill exists only on wide screens (shown in the block below) */
+#ui #loading .loadfill { display: none; }
 /* --uiz: big screens scale the phone-sized UI up (pages, popups, race HUD); Home follows its key art by itself */
 :root { --uiz: 1; --col: min(100vw, max(430px, min(62dvh, calc(620px * var(--uiz))))); }
 @media (min-aspect-ratio: 3/4) and (min-height: 1150px), (min-width: 700px) and (min-height: 1150px) { :root { --uiz: 1.2; } }
@@ -2697,4 +2699,8 @@ body.portal-noad [data-a="popa"][data-v="watchad"] { display: none !important; }
   /* race HUD over the full width: the EXP / rank box keeps a phone size, centred between pause and coins */
   #ui #hud, #ui #countdown, #ui #tutprompt { zoom: var(--uiz); }
   #ui #hud .row .scorebox { flex: 0 1 440px; margin: 0 auto; }
+  /* loading: the whole portrait art in the middle (cover cropped the logo off), a blurred darker copy beside it */
+  #ui #loading .loadbg:not(.loadfill) { object-fit: contain; object-position: 50% 50%; }
+  #ui #loading .loadfill { display: block; object-fit: cover; filter: blur(28px) brightness(.55); transform: scale(1.08); }
+  #ui #loading .load-foot { width: var(--col); }
 }

@@ -4,6 +4,13 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-29 — desk-gama: sharper logo (Home key art + loading art), loading on wide screens
+- Home: `home-bg.webp` re-encoded from `assets-src/home/home-bg.png` at q92 with an unsharp mask on the logo (feathered box
+  x110–830, y600–1160), 277 → 635 KB; HomeView samples the art with mip bias −0.6 (trilinear softened it when shown smaller).
+- Loading: `loading.webp` now from `assets-src/reference/loading-v2.webp` 941×1672 (was 600×1066), logo sharpened, 473 KB.
+  Wide screens: the whole art in the middle (`contain`, cover cropped the logo off) with a blurred copy beside it (`.loadfill`).
+- Web package 4.6 → 5.3 MB (zip 3.9 MB). The native TikTok build uses its own images (unchanged).
+
 ## 2026-10-29 — desk-gama: desktop / tablet / iPad / large-screen layouts (branch desk-gama, from feat/portal-hooks-v4)
 - The web build no longer squeezes the game into a 9:16 box on wide screens. Wider than 3:4 or ≥ 700 px wide: the 3D view,
   Home (key art + its blurred mirror) and the race HUD fill the screen; every page / popup sits in one centred column

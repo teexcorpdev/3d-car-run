@@ -378,7 +378,8 @@ export class UI {
   }
 
   private template() {
-    const loadingBg = `<img class="loadbg" src="${loadingUrl}" alt="" draggable="false" />`;
+    // desk-gama: a blurred copy fills wide screens beside the whole (uncropped) art — hidden on phones (ui.css)
+    const loadingBg = `<img class="loadbg loadfill" src="${loadingUrl}" alt="" draggable="false" /><img class="loadbg" src="${loadingUrl}" alt="" draggable="false" />`;
     return `
     <section id="loading" class="screen show">
       ${loadingBg}

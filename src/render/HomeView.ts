@@ -65,7 +65,9 @@ export class HomeView {
             c = texture2D(tMap, vec2(clamp(m, 0.0, 1.0), 1.0 - v), 5.5);
             c.rgb *= 0.55;
           } else {
-            c = texture2D(tMap, vec2(u, 1.0 - v));
+            // desk-gama: bias toward the sharper mip — shown smaller than its pixels (desktop ~0.65×) the trilinear
+            // blend softened the painted logo; -0.6 keeps it crisp without shimmer
+            c = texture2D(tMap, vec2(u, 1.0 - v), -0.6);
           }
           vec3 lin = mix(pow((c.rgb + 0.055) / 1.055, vec3(2.4)), c.rgb / 12.92, step(c.rgb, vec3(0.04045)));
           gl_FragColor = vec4(mix(c.rgb, lin, uLinearOut), 1.0);

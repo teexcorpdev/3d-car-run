@@ -695,7 +695,7 @@ function settingsOv(ui: UI, g: Gfx) {
       g.text(l, tx + 36, ty + 24, { size: 11.5, maxW: tw - 92 });
       toggle(g, `s-${k}`, tx + tw - 54, ty + 11, on, fn);
     });
-    // graphics LO / MED / HI (v4: three presets), full width under the switches
+    // graphics MED / HI (v4.0.3, owner: no LOW), full width under the switches
     {
       const tx = x,
         ty = y + 168;
@@ -703,11 +703,11 @@ function settingsOv(ui: UI, g: Gfx) {
       g.icon(ICON.gear, tx + 8, ty + 13, 22, C.cyan);
       g.text('Graphics', tx + 36, ty + 24, { size: 11.5, maxW: w - 180 });
       const q = ui.liveQuality ?? s.settings.quality;
-      (['low', 'medium', 'high'] as const).forEach((v, i) => {
-        const bx = tx + w - 140 + i * 44;
+      (['medium', 'high'] as const).forEach((v, i) => {
+        const bx = tx + w - 96 + i * 44;
         const on = q === v;
         g.rr(bx, ty + 12, 42, 24, 8, on ? C.blue : 'rgba(255,255,255,.1)', 'rgba(255,255,255,.25)');
-        g.text(v === 'high' ? 'HI' : v === 'medium' ? 'MED' : 'LO', bx + 21, ty + 24, { size: 11, align: 'center', noTr: true });
+        g.text(v === 'high' ? 'HI' : 'MED', bx + 21, ty + 24, { size: 11, align: 'center', noTr: true });
         g.hit(bx - 1, ty + 6, 44, 36, `q-${v}`, () => (on ? undefined : ui.h.toggleQuality(v)));
       });
     }

@@ -94,7 +94,7 @@ function cleanName(n: string) {
 }
 
 const fmtInt = (n: number) => Math.round(n).toLocaleString('en-US');
-const VERSION = 'v4.0.2';
+const VERSION = 'v4.0.3';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -262,7 +262,6 @@ export class Game {
   private menuDist = 0;
   private tmpV = new THREE.Vector3();
   private frameTimes: number[] = [];
-  private qualityChecked = 0;
   private fps = 60;
   private debugBoxes: THREE.LineSegments | null = null;
   /** last collision, explained (debug overlay) */
@@ -4229,8 +4228,8 @@ export class Game {
   }
 
   private toggleQuality(v?: string) {
-    // a preset picked from the LO / MED / HI switch, or LOW → MEDIUM → HIGH → LOW from the cycle button
-    this.save.settings.quality = v === 'low' || v === 'medium' || v === 'high' ? v : nextGraphics(this.renderer.quality);
+    // a preset picked from the MED / HI switch, or MEDIUM ⇄ HIGH from the cycle button (v4.0.3: no LOW)
+    this.save.settings.quality = v === 'medium' || v === 'high' ? v : nextGraphics(this.renderer.quality);
     this.applyQuality(this.save.settings.quality);
     this.persist();
     this.audio.play('click');
@@ -4252,25 +4251,12 @@ export class Game {
     this.rig.resize(aspect);
   }
 
-  /** Drops to LOW for this session if the device can't hold ~42 fps. */
+  /** Measures fps (debug readout). v4.0.3 (owner): the game never changes the graphics by itself. */
   private trackPerformance(rawDt: number) {
     this.frameTimes.push(rawDt);
     if (this.frameTimes.length > 90) this.frameTimes.shift();
     const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
     this.fps = 1 / Math.max(1e-4, avg);
-    this.qualityChecked += rawDt;
-    if (this.state === 'run' && this.qualityChecked > 4 && this.renderer.quality !== 'low' && this.fps < 42 && !DEBUG && !/[?&]noauto/.test(location.search)) {
-      this.qualityChecked = 0;
-      this.frameTimes.length = 0;
-      // graceful scaling: resolution 2 → 1.75 → 1.5, then bloom off, only then LOW (session only)
-      if (this.renderer.degrade()) {
-        this.particles.setPixelRatio(this.renderer.pixelRatio);
-        this.smoke.setPixelRatio(this.renderer.pixelRatio);
-        return;
-      }
-      this.applyQuality('low');
-      this.ui.toast(`${ICON.gear} Graphics set to LOW for smoother play`);
-    }
   }
 
   private makeDebugBoxes() {

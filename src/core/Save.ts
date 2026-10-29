@@ -136,7 +136,7 @@ const defaults = (): SaveData => ({
   settings: {
     sound: true,
     music: true,
-    quality: 'high', // v1.0.8 (owner): HIGH by default (a slow device still steps down on its own)
+    quality: 'high', // v1.0.8 (owner): HIGH by default; v4.0.3: no automatic step-down any more
     gfx3: true,
     speed: 'normal',
     assist: true,
@@ -234,6 +234,8 @@ function loadSaveRaw(): SaveData {
       if (p.settings.quality === 'medium') p.settings.quality = 'high';
       p.gfxHigh = true;
     }
+    // v4.0.3 (owner): only MEDIUM / HIGH can be picked — a stored LOW becomes MEDIUM
+    if (p.settings && p.settings.quality === 'low') p.settings.quality = 'medium';
     return {
       ...d,
       ...p,

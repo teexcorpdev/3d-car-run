@@ -92,17 +92,17 @@ const check = (ok: boolean, msg: string) => {
 
 // ---- graphics presets
 {
-  const [lo, me, hi] = GRAPHICS_ORDER.map((q) => GRAPHICS[q]);
-  check(GRAPHICS_ORDER.join() === 'low,medium,high', 'three presets: LOW, MEDIUM, HIGH');
+  const [lo, me, hi] = (['low', 'medium', 'high'] as const).map((q) => GRAPHICS[q]);
+  check(GRAPHICS_ORDER.join() === 'medium,high', 'v4.0.3: the player picks MEDIUM or HIGH (LOW kept only as a preset)');
   check(lo.dprCap <= me.dprCap && me.dprCap <= hi.dprCap && lo.cityDensity <= me.cityDensity && me.cityDensity <= hi.cityDensity && lo.anisotropy <= me.anisotropy && me.anisotropy <= hi.anisotropy, 'cost rises LOW → MEDIUM → HIGH (pixel ratio, city density, anisotropy)');
   check(!lo.bloom && !lo.speedBlur && me.bloom && !me.speedBlur && hi.bloom && hi.speedBlur, 'post-processing: LOW none, MEDIUM bloom, HIGH bloom + speed blur');
   check(lo.particles < me.particles && me.particles <= hi.particles && hi.particles === 1, 'v4.2.1 particle density: LOW < MEDIUM ≤ HIGH (HIGH = full)');
   check(lo.roadTex < me.roadTex && me.roadTex === hi.roadTex && [lo, me, hi].every((p) => (p.roadTex & (p.roadTex - 1)) === 0), 'v4.2.1 road texture: LOW smaller, power-of-two sizes');
   check(lo.dprCap < me.dprCap, 'v4.2.1 LOW renders fewer pixels than MEDIUM');
-  check(nextGraphics('low') === 'medium' && nextGraphics('medium') === 'high' && nextGraphics('high') === 'low', 'settings cycle LOW → MEDIUM → HIGH → LOW');
+  check(nextGraphics('medium') === 'high' && nextGraphics('high') === 'medium', 'v4.0.3: settings cycle MEDIUM ⇄ HIGH');
 }
 
-// ---- saves (v1.0.8, owner): new players start on HIGH; saves on the old MEDIUM default move to HIGH once; LOW stays LOW
+// ---- saves (v1.0.8, owner): new players start on HIGH; saves on the old MEDIUM default move to HIGH once; v4.0.3: LOW → MEDIUM
 {
   const store: Record<string, string> = {};
   globalThis.localStorage = { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => (store[k] = v), removeItem: (k: string) => delete store[k] };
@@ -115,7 +115,9 @@ const check = (ok: boolean, msg: string) => {
   store['xwave-sky-rush-v1'] = JSON.stringify({ settingsRev: 3, gfxHigh: true, settings: { sound: true, music: true, quality: 'medium', speed: 'normal', gfx3: true } });
   check(loadSave().settings.quality === 'medium', 'a player who picked MEDIUM after v1.0.8 keeps MEDIUM');
   store['xwave-sky-rush-v1'] = old('low');
-  check(loadSave().settings.quality === 'low', 'old save on LOW stays LOW');
+  check(loadSave().settings.quality === 'medium', 'v4.0.3: old save on LOW → MEDIUM (LOW can no longer be picked)');
+  store['xwave-sky-rush-v1'] = JSON.stringify({ settingsRev: 3, gfxHigh: true, settings: { sound: true, music: true, quality: 'low', speed: 'normal', gfx3: true } });
+  check(loadSave().settings.quality === 'medium', 'v4.0.3: a recent save on LOW → MEDIUM too');
   store['xwave-sky-rush-v1'] = JSON.stringify({ settingsRev: 3, settings: { sound: true, music: true, quality: 'high', speed: 'normal', gfx3: true } });
   check(loadSave().settings.quality === 'high', 'a player who picked HIGH after the update keeps HIGH');
 }

@@ -56,6 +56,8 @@ export const HOME_LAYOUT = {
   pkEntry: [840, 176, 82],
   pkLaunch: [840, 330, 82],
   pkShare: [840, 484, 82],
+  /** v4.0.3 (owner): Language on Home — same small round button, left column under the profile plate */
+  lang: [30, 200, 82],
   /** the 3D car: centre of its footprint and its on-screen width */
   car: [470, 1012, 575],
 } as const;

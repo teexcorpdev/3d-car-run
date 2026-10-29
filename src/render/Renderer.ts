@@ -230,24 +230,6 @@ export class Renderer {
     return w / h;
   }
 
-  /** step dynamic resolution down; returns false when nothing is left to reduce */
-  degrade(): boolean {
-    if (this.quality === 'low') return false;
-    const dpr = window.devicePixelRatio || 1;
-    const cap = GRAPHICS[this.quality].dprCap;
-    if (this.scaleCap > 1.5 && dpr > 1.5 && cap > 1.5) {
-      this.scaleCap = this.scaleCap > 1.75 ? 1.75 : 1.5;
-      this.setQuality(this.quality);
-      return true;
-    }
-    if (this.bloomEnabled && GRAPHICS[this.quality].bloom) {
-      this.bloomEnabled = false;
-      this.setQuality(this.quality);
-      return true;
-    }
-    return false;
-  }
-
   /** 0 … ~0.08: how far the screen edges smear toward the vanishing point (HIGH preset only) */
   setSpeedBlur(strength: number) {
     if (this.speedBlur) this.speedBlur.uniforms.strength.value = strength;

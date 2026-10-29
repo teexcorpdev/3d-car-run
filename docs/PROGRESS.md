@@ -4,6 +4,15 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-29 — v4.0.3 (branch `v4.0`, not pushed): graphics MED / HI only, Language on Home
+- v4.0.3 had been made in a cloud session (commit e09d732) that never reached this PC or GitHub — redone here from its report:
+  Settings MED / HI only, LOW save → MEDIUM, no automatic graphics step-down (`trackPerformance` only measures fps,
+  `Renderer.degrade` removed). Owner: "Language" button out on Home (option A: TikTok + Android, no platform test).
+- Home Language: `HOME_LAYOUT.lang` (left column under the profile), `roundPlaque` / `plaqueLabel` shared with the perk buttons.
+- Checked: typecheck, `npm test` (373 ✓), hs-check 0 fail / 0 warn, headless preview TikTok + Android (button → picker → FR, Settings MED / HI).
+- Worked in a git worktree `D:\Workspace\gitd-car-run-v4` (another session was editing branch desk-gama in the main folder).
+- Next: owner builds the Android AAB from `3d-car-run-android-1.0.3.zip`; push `v4.0` when the owner says so.
+
 ## 2026-10-25 — v4.0.2 later (branch `v4.0`, not pushed): load size, rides, owner fixes
 - **Load size (TikTok):** game.js 2.84 MB → 1.23 MB. The X1 GLB is no longer base64 inside game.js: it ships as
   `tiktok/assets/xwave-x1-*.bin`, read through `setPackageReader(hs.packageReader())` (TikTok Minis file system;

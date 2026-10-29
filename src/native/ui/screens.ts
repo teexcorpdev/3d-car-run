@@ -3,7 +3,7 @@
 import { perkOnHome, perkVisible } from '../../meta/Perks.ts';
 import { C, Gfx, bar, button, card, fmt, iconBtn, panel, rankBadge, rankBadgeW, toggle } from './gfx.ts';
 import type { UI } from './NativeUI.ts';
-import { BAG_ICON, BOLT, ICON, ITEM_ICON, RARITY_COLOR, ROCKET_G, SPECIAL_SHORT } from './consts.ts';
+import { BAG_ICON, BOLT, GLOBE_G, ICON, ITEM_ICON, RARITY_COLOR, ROCKET_G, SPECIAL_SHORT } from './consts.ts';
 import { capRow, column, safeBottom, safeTop } from './layout.ts';
 import { drawOverlay } from './popups.ts';
 import { avatarSvg, avatarForName } from '../../ui/avatars.ts';
@@ -246,6 +246,17 @@ function start(ui: UI, g: Gfx) {
     if (o && o.dailyBadge > 0) dot(g, r.x + r.w * 0.95, r.y + mh * 0.02, st.s);
     g.hit(r.x - 2, r.y - 2, r.w + 4, mh + 4, 'more', () => ui.showOverlay('more'));
   }
+  // ---- v4.0.3 (owner): Language — the perk buttons' wood + brass, labelled with the current language code
+  {
+    const r = top('lang');
+    const rr = r.w / 2,
+      cx = r.x + rr,
+      cy = r.y + rr;
+    roundPlaque(g, cx, cy, rr, st.s, g.isPressed('home-lang'));
+    g.icon(GLOBE_G, cx - rr * 0.52, cy - rr * 0.52, rr * 1.04);
+    plaqueLabel(g, ui.lang.toUpperCase(), cx, r.y + r.w);
+    g.hit(r.x - 4, r.y - 4, r.w + 8, r.w + 22, 'home-lang', () => ui.langPicker());
+  }
   // ---- Launch · Share · Entry (small round buttons under More)
   const pst = hs.perkState();
   const perks = [
@@ -260,15 +271,10 @@ function start(ui: UI, g: Gfx) {
     const rr = r.w / 2,
       cx = r.x + rr,
       cy = r.y + rr;
-    const pr = g.isPressed(p.key);
     // v4.0.2 (owner): the same wood + brass as the gear / menu plaques, one icon colour for all three
-    g.circle(cx, cy, rr + 1.5, null, '#2a1204', 2);
-    g.circle(cx, cy, rr, g.rad(cx, cy - rr * 0.35, rr * 0.1, rr * 1.15, [[0, pr ? '#a06a38' : '#8a5a30'], [0.6, '#5e3a1c'], [1, '#3a2210']]), '#d9a85a', Math.max(2, 3 * st.s + 1));
-    g.circle(cx, cy, rr * 0.8, null, 'rgba(255,220,150,.22)', 1);
+    roundPlaque(g, cx, cy, rr, st.s, g.isPressed(p.key));
     g.icon(p.icon, cx - rr * 0.52, cy - rr * 0.52, rr * 1.04, '#ffd27a');
-    const lw = g.measure(p.label, { size: 9.5 }) + 12;
-    g.rr(cx - lw / 2, r.y + r.w + 3, lw, 15, 6, '#3a1d08', '#d9a85a', 1);
-    g.text(p.label, cx, r.y + r.w + 10.5, { size: 9.5, align: 'center', color: '#fff1d0', shadow: null, noTr: true });
+    plaqueLabel(g, p.label, cx, r.y + r.w);
     const open = perkVisible(p.kind, pst);
     if (open) dot(g, cx + rr * 0.78, cy - rr * 0.8, st.s);
     else if (pst.started && p.kind !== 'share') {
@@ -277,6 +283,20 @@ function start(ui: UI, g: Gfx) {
     }
     g.hit(r.x - 4, r.y - 4, r.w + 8, r.w + 22, p.key, () => ui.h.perk(p.kind));
   });
+}
+
+/** small round Home button: wood + brass rim (Launch / Share / Entry / Language) */
+function roundPlaque(g: Gfx, cx: number, cy: number, rr: number, s: number, pressed: boolean) {
+  g.circle(cx, cy, rr + 1.5, null, '#2a1204', 2);
+  g.circle(cx, cy, rr, g.rad(cx, cy - rr * 0.35, rr * 0.1, rr * 1.15, [[0, pressed ? '#a06a38' : '#8a5a30'], [0.6, '#5e3a1c'], [1, '#3a2210']]), '#d9a85a', Math.max(2, 3 * s + 1));
+  g.circle(cx, cy, rr * 0.8, null, 'rgba(255,220,150,.22)', 1);
+}
+
+/** the label tag under a round Home button (bottom = the button's bottom edge) */
+function plaqueLabel(g: Gfx, label: string, cx: number, bottom: number) {
+  const lw = g.measure(label, { size: 9.5 }) + 12;
+  g.rr(cx - lw / 2, bottom + 3, lw, 15, 6, '#3a1d08', '#d9a85a', 1);
+  g.text(label, cx, bottom + 10.5, { size: 9.5, align: 'center', color: '#fff1d0', shadow: null, noTr: true });
 }
 
 /** the key art's red notification dot */

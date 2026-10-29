@@ -189,6 +189,13 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v4.0.3 (native, branch `v4.0`) — graphics MEDIUM / HIGH only, Language on Home
+
+- **Graphics:** Settings offers MED / HI only (HIGH by default); a save on LOW moves to MEDIUM. The game no longer
+  changes the graphics by itself (no automatic resolution / bloom / LOW step-down when the fps drops).
+- **Language on Home:** a small round globe button under the profile plate (same wood + brass as Launch / Share /
+  Entry), labelled with the current language code; it opens the language picker. TikTok and Android alike.
+
 ## v4.0.2 (native, branch `v4.0`) — new race end, moving board position, polish
 
 - **Revive panel** (owner mock-up): CRASHED! · CONTINUE (revive ad `rw_revive`, cooldown 0) · countdown bar · Restart · Home. Also in Gold Rush.

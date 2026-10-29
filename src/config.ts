@@ -566,7 +566,8 @@ export const GRAPHICS: Record<GraphicsQuality, GraphicsPreset> = {
   medium: { dprCap: 1.5, bloom: true, speedBlur: false, cityDensity: 0.8, cityExtras: true, roadDetail: true, anisotropy: 4, particles: 0.8, roadTex: 512 },
   high: { dprCap: 2, bloom: true, speedBlur: true, cityDensity: 1, cityExtras: true, roadDetail: true, anisotropy: 8, particles: 1, roadTex: 512 },
 };
-export const GRAPHICS_ORDER: GraphicsQuality[] = ['low', 'medium', 'high'];
+// v4.0.3 (owner): the player picks MEDIUM or HIGH only (LOW stays as a preset type for old saves, never offered)
+export const GRAPHICS_ORDER: GraphicsQuality[] = ['medium', 'high'];
 /** the next preset when the player taps the Graphics setting */
 export const nextGraphics = (q: GraphicsQuality): GraphicsQuality => GRAPHICS_ORDER[(GRAPHICS_ORDER.indexOf(q) + 1) % GRAPHICS_ORDER.length];
 

@@ -463,7 +463,7 @@ export class UI {
           <div class="stile"><span class="si">${ICON.info}</span><span class="sl">Hint arrows</span><button class="switch" data-a="assist" role="switch" aria-label="Danger arrows"><i></i></button></div>
           <div class="stile"><span class="si">◐</span><span class="sl">Eye comfort</span><button class="switch" data-a="comfort" role="switch" aria-label="Comfort visuals"><i></i></button></div>
           <div class="stile"><span class="si">🎥</span><span class="sl">Camera motion</span><button class="switch" data-a="cammotion" role="switch" aria-label="Camera moves with the car"><i></i></button></div>
-          <div class="stile wide"><span class="si">${ICON.gear}</span><span class="sl">Graphics</span><div class="seg" data-k="qseg"><button data-a="quality" data-v="low">LO</button><button data-a="quality" data-v="medium">MED</button><button data-a="quality" data-v="high">HI</button></div></div>
+          <div class="stile wide"><span class="si">${ICON.gear}</span><span class="sl">Graphics</span><div class="seg" data-k="qseg"><button data-a="quality" data-v="medium">MED</button><button data-a="quality" data-v="high">HI</button></div></div>
         </div>
         <button class="srow lang acct" data-a="account"><span class="si">☁️</span><span class="sl">Account</span><b data-k="acctline">Guest</b>${ICON.chevR}</button>
         <button class="srow lang" data-a="lang"><span class="si">🌐</span><span class="sl">Language</span><b data-k="langname">English</b>${ICON.chevR}</button>

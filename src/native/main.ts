@@ -262,7 +262,16 @@ if (ui && game) {
   const orig = r3.setAnimationLoop.bind(r3);
   r3.setAnimationLoop = (cb: any) => {
     booted = true;
-    orig(cb);
+    if (!cb) return orig(cb);
+    // the Xwave test lab waits for "ready", sent after the first game frame (does nothing outside the lab)
+    let told = false;
+    orig((t: number, f?: any) => {
+      cb(t, f);
+      if (told) return;
+      told = true;
+      const emit = G.__XW_TEST__ ? (G.__XW_EMIT__ ?? (globalThis as any).__XW_EMIT__) : null;
+      if (typeof emit === 'function') try { emit('ready', {}); } catch { /* lab only */ }
+    });
   };
   const raf = G.requestAnimationFrame ?? ((cb: () => void) => setTimeout(cb, 16));
   const pre = () => {

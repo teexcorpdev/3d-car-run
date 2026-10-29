@@ -42,12 +42,7 @@ html, body {
   position: relative; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
   background: #000;
 }
-@media (min-aspect-ratio: 3/4) {
-  #game {
-    height: min(100vh, 100dvh); width: calc(min(100vh, 100dvh) * 9 / 16);
-    border-radius: 22px; box-shadow: 0 0 0 1px var(--rim-soft), 0 30px 120px rgba(40, 120, 255, 0.35);
-  }
-}
+/* desk-gama: the game fills every screen (desktop, tablet, iPad, large); wide layouts are at the end of this file */
 #game canvas { position: absolute; inset: 0; }
 
 #ui { position: absolute; inset: 0; pointer-events: none; font-family: var(--font); font-weight: var(--fw); container-type: inline-size; }
@@ -2678,3 +2673,28 @@ body.portal-noad [data-a="adboost"],
 body.portal-noad [data-a="adfree"],
 body.portal-noad [data-a="contad"],
 body.portal-noad [data-a="popa"][data-v="watchad"] { display: none !important; }
+
+/* ----------------------------------------------------------------- wide screens (desk-gama)
+   Tablet / iPad / laptop / desktop / large monitors (wider than 3:4, or 700 px wide). The 3D view, Home (key art + its blurred
+   mirror on the sides) and the race HUD use the whole screen; every page and popup sits in one centred column
+   of phone-like width, the rest of the screen darkened behind it. Phones (narrower than 3:4) are unchanged. */
+/* --uiz: big screens scale the phone-sized UI up (pages, popups, race HUD); Home follows its key art by itself */
+:root { --uiz: 1; --col: min(100vw, max(430px, min(62dvh, calc(620px * var(--uiz))))); }
+@media (min-aspect-ratio: 3/4) and (min-height: 1150px), (min-width: 700px) and (min-height: 1150px) { :root { --uiz: 1.2; } }
+@media (min-aspect-ratio: 3/4) and (min-height: 1350px), (min-width: 700px) and (min-height: 1350px) { :root { --uiz: 1.4; } }
+@media (min-aspect-ratio: 3/4) and (min-height: 1700px), (min-width: 700px) and (min-height: 1700px) { :root { --uiz: 1.8; } }
+/* wide = wider than 3:4 (landscape tablets, laptops, monitors) or any screen 700 px wide (portrait tablets / iPad) */
+@media (min-aspect-ratio: 3/4), (min-width: 700px) {
+  #ui .screen:not(#hud):not(#start):not(#countdown):not(#tutprompt):not(#loading) {
+    /* zoomed: position and width are given in the zoomed space, so divide by --uiz */
+    zoom: var(--uiz);
+    left: calc((50vw - var(--col) / 2) / var(--uiz)); right: auto; width: calc(var(--col) / var(--uiz));
+    container-type: inline-size;
+    box-shadow: 0 0 0 100vmax rgba(3, 6, 20, .55);
+  }
+  /* screens that leave the 3D view visible keep it visible beside the column */
+  #ui #garage, #ui #tutdone { box-shadow: 0 0 0 100vmax rgba(3, 6, 20, .25); }
+  /* race HUD over the full width: the EXP / rank box keeps a phone size, centred between pause and coins */
+  #ui #hud, #ui #countdown, #ui #tutprompt { zoom: var(--uiz); }
+  #ui #hud .row .scorebox { flex: 0 1 440px; margin: 0 auto; }
+}

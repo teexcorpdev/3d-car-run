@@ -51,9 +51,6 @@ html, body { background: var(--bg); }
     radial-gradient(90% 60% at 50% 110%, #3a1a08 0%, transparent 60%),
     var(--bg) !important;
 }
-@media (min-aspect-ratio: 3/4) {
-  #game { box-shadow: 0 0 0 1px var(--rim-soft), 0 30px 120px rgba(200, 120, 40, 0.3) !important; }
-}
 /* single-weight display faces: never fake bold / italic them */
 #ui { font-synthesis: none; letter-spacing: .3px; }
 #ui :is(h1, h2, .finish-title, .cu-title, .mhead h2, .head h2, .p3h h2) { font-family: var(--font-title) !important; font-style: normal !important; font-weight: 400 !important; letter-spacing: 1px; }

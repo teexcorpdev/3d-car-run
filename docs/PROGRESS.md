@@ -4,6 +4,15 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-29 — desk-gama: desktop / tablet / iPad / large-screen layouts (branch desk-gama, from feat/portal-hooks-v4)
+- The web build no longer squeezes the game into a 9:16 box on wide screens. Wider than 3:4 or ≥ 700 px wide: the 3D view,
+  Home (key art + its blurred mirror) and the race HUD fill the screen; every page / popup sits in one centred column
+  (`--col`, ~430–620 px) with the rest darkened; the HUD EXP box keeps a phone width. Tall screens scale the UI with
+  `zoom: var(--uiz)` (1.2 from 1150 px high, 1.4 from 1350, 1.8 from 1700). Phones are unchanged. All in `src/ui/ui.css` (end).
+- Checked on 390×844, 800×1280, 820×1180, 1180×820, 1366×768, 1920×1080, 2560×1440, 3440×1440 (0 runtime errors);
+  typecheck + 15 suites; xwave-port Playgama test 39/39 incl. desktop clicks Play → Tracks → GO.
+- Not checked: the native TikTok build on this branch (canvas UI, does not use ui.css); real tablets.
+
 ## 2026-10-29 — fix: Play opened no Tracks screen on the web build (branch feat/portal-hooks-v4)
 - Bug (owner, Playgama mobile + desktop): tap Play → nothing, game stuck on Home. `openTracks()` calls
   `ui.adButton('adboost')`, but v4.0.2 removed that button from the web UI → `null.dataset` threw half-way.

@@ -1,0 +1,72 @@
+/** v2.2 Bonus roads (v1.0.0: GOLD RUSH 3-minute run): set pieces reserved after rare specials, tunnels, fair rows, sorted pickups. */
+declare const process: { exit(code: number): never };
+import { BONUS_SET, LEVELS, type SpeedLevel } from '../src/config.ts';
+import { Spawner } from '../src/gameplay/Spawner.ts';
+import { Rng } from '../src/core/Rng.ts';
+import { BONUS, BONUS_NAME, bonusState } from '../src/meta/Bonus.ts';
+import { goldRushRoadLength } from '../src/meta/GoldRush.ts';
+import { START_STATE, step } from '../src/gameplay/Fairness.ts';
+import { FAIRNESS } from '../src/config.ts';
+
+let fails = 0;
+const check = (ok: boolean, msg: string) => {
+  if (!ok) {
+    fails++;
+    console.error('  ✗ ' + msg);
+  } else console.log('  ✓ ' + msg);
+};
+
+const SPECIALS = new Set(['super', 'hyper', 'escape', 'wall', 'rail', 'ghost', 'tunnel']);
+for (const theme of Object.keys(BONUS_NAME) as (keyof typeof BONUS_NAME)[])
+  for (const lv of ['hard', 'normal', 'easy'] as SpeedLevel[]) {
+    let specials = 0;
+    let tunnelRiders = 0;
+    let sorted = true;
+    let gapsEmpty = true;
+    let unreachable = 0;
+    let length = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const sp = new Spawner(new Rng(seed * 977 + theme.length));
+      sp.level = lv;
+      sp.speedMul = LEVELS[lv].speed;
+      sp.course = { id: 'probe', name: '', world: theme, length: 1, diffOffset: 900, difficulty: 2, coinTarget: 0, reward: 0, sections: [] };
+      // v1.0.0: the Gold Rush road (longer than 180 s at full speed + Nitro; the timer ends the run)
+      length = goldRushRoadLength((dd) => sp.speed(dd)).length;
+      sp.course = { ...sp.course, length, bonus: true, sections: [{ name: 'a', from: 0, to: length }] };
+      sp.reset(0);
+      sp.generateUntil(length);
+      for (let i = 1; i < sp.pickups.length; i++) if (sp.pickups[i].dist < sp.pickups[i - 1].dist - 0.01) sorted = false;
+      specials += sp.pickups.filter((p) => SPECIALS.has(p.kind)).length;
+      tunnelRiders += sp.pickups.filter((p) => p.kind === 'tunnel').length;
+      for (const s of sp.setPieces) if (sp.rows.some((r) => r.obstacles.length && r.dist >= s.from - 1 && r.dist <= s.to + 1)) gapsEmpty = false;
+      // every generated row stays passable from the reach the spawner tracked (re-check with the fairness model)
+      let reach = START_STATE;
+      let prev = 0;
+      for (const r of sp.rows) {
+        const n = step(reach, r.masks, Math.max(r.dt, FAIRNESS.minRowTime), 0.2);
+        if (!n && r.dist - prev < 60) unreachable++;
+        reach = n || START_STATE;
+        prev = r.dist;
+      }
+    }
+    const per = specials / 6;
+    check(per >= 1 && per <= 12, `${theme} ${lv}: ${length} m road, ${per.toFixed(1)} specials per road (rare), ${tunnelRiders} Tunnel Riders / 6 roads`);
+    check(sorted, `${theme} ${lv}: pickups in road order`);
+    check(gapsEmpty, `${theme} ${lv}: set-piece stretches stay empty until the pickup is collected`);
+    check(unreachable === 0, `${theme} ${lv}: every row passable`);
+  }
+// v4.0.1: the hourly window — arriving at hh:15 still plays this hour's event until hh:30
+{
+  const hour = new Date(2026, 9, 25, 1, 0, 0, 0).getTime();
+  const at = (m: number) => bonusState(hour + m * 60000);
+  check(!!at(0).live && at(0).live!.start === hour, '01:00 → event open');
+  check(!!at(15).live && at(15).live!.start === hour && at(15).live!.end === hour + 30 * 60000, '01:15 → still open until 01:30 (not 02:00)');
+  check(!!at(29.9).live, '01:29 → still open');
+  check(!at(30).live && at(30).next.start === hour + 3600000, '01:30 → closed, next 02:00');
+  check(at(15).next.start === hour + 3600000, 'next event at 02:00');
+  check(at(15).live!.key === at(5).live!.key, 'same event key across the window (plays counted per event)');
+}
+check(BONUS.raceMinutes === 3, 'Gold Rush run lasts 3 minutes');
+check(BONUS_SET.tunnels.length >= 2, 'Bonus roads have tunnel sections');
+console.log(fails ? `${fails} FAILED` : 'ALL PASSED');
+if (fails) process.exit(1);

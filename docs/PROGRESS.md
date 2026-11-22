@@ -1,0 +1,529 @@
+# Progress log — 3D Car Run (entries before v1.0.0 are the Sky Roadster history)
+
+Newest entry on top. Every AI session adds a short entry: what was done, what is unfinished, what's next.
+
+---
+
+## 2026-10-29 — v4.0.3 (branch `v4.0`, not pushed): graphics MED / HI only, Language on Home
+- v4.0.3 had been made in a cloud session (commit e09d732) that never reached this PC or GitHub — redone here from its report:
+  Settings MED / HI only, LOW save → MEDIUM, no automatic graphics step-down (`trackPerformance` only measures fps,
+  `Renderer.degrade` removed). Owner: "Language" button out on Home (option A: TikTok + Android, no platform test).
+- Home Language: `HOME_LAYOUT.lang` (left column under the profile), `roundPlaque` / `plaqueLabel` shared with the perk buttons.
+- Checked: typecheck, `npm test` (373 ✓), hs-check 0 fail / 0 warn, headless preview TikTok + Android (button → picker → FR, Settings MED / HI).
+- Worked in a git worktree `D:\Workspace\gitd-car-run-v4` (another session was editing branch desk-gama in the main folder).
+- Next: owner builds the Android AAB from `3d-car-run-android-1.0.3.zip`; push `v4.0` when the owner says so.
+
+## 2026-10-25 — v4.0.2 later (branch `v4.0`, not pushed): load size, rides, owner fixes
+- **Load size (TikTok):** game.js 2.84 MB → 1.23 MB. The X1 GLB is no longer base64 inside game.js: it ships as
+  `tiktok/assets/xwave-x1-*.bin`, read through `setPackageReader(hs.packageReader())` (TikTok Minis file system;
+  the Android app / preview fall back to fetch). After the ES2017 downlevel the bundle is minified again (names
+  too); `require("./hs-game.js")`, `.HSGame.share(` and `.HSGame.has('share')` are kept literal for hs-check.
+- **GLB packing:** `scripts/car/pack-x1.mjs` also stores POSITION / TEXCOORD_0 as int16 normalized + `extras.dq`
+  (read by glbParse) — 783 → 645 KB, error 0.03 mm. Lock test + fingerprint (`packedSha256`) updated.
+- **Loading art:** web `loading.webp` 540×960 / 49 KB; TikTok `loading.jpg` 540×960 / 44 KB baseline JPEG.
+  Hand-tuned native files live in `assets-src/native-tuned/` (copied by scripts/native-images.py last);
+  the 600×1066 master is `assets-src/loading/loading-master-600x1066.webp`.
+- Rides: Mine Run drives the tunnel crown; Wall Ride = car at 90° on a timber wall through slotted gates
+  (`BonusTunnels.setSlotGates`, `SHOWCASE_RIDE` in config.ts). Level picker on Tracks + Settings, Saddle Bag,
+  white Zenith, boards (all time = best EXP, weekly = average), iPhone audio unlock on touch end, `[go]` log.
+- **First taps on Home (owner: still stutters):** all background work now goes through ONE queue,
+  `src/core/bgWork.ts` (music loops, SFX bank/bake, reverb tail in 4096-sample slices, road tile rows, screen
+  warm-up): one job at a time, 3 ms slices with a frame's rest on phones, held 500–600 ms after every touch and
+  2.5 s at race start. `NativeUI.warm()` pre-draws the screens reachable from Home while idle (icons rasterised,
+  pictures decoding). Measured without a JIT: long tasks in the 7 s after the first tap 10 (50–290 ms) → 3 (≤ 64 ms).
+- **Weak network:** offline → no interstitial; an interstitial silent for 2.5 s no longer blocks the way to a menu
+  (`AD_LATE_MS`; before a race it still waits, with the "ad loading" note). Rewarded ads keep the kit's 8 s cap.
+- **TikTok review (stability: freeze / blank screen):** `Game.frame` catches errors (three.js only asks for the
+  next frame after the callback returns — one uncaught error ended the loop: picture frozen, FPS 0, seen on the
+  first training countdown at "2"); a countdown that keeps failing starts the race; `Audio.play` never throws;
+  boot continues past a failing asset, a failed boot still opens Home; native watchdog restarts a stopped loop
+  (3 s without a frame while visible); bgWork caps 64 steps per tick. Loading art back to the normal files.
+- **No grey / black start (owner video):** tiktok/game.js = the bundle wrapped as `__runGame` + `src/native/boot-loader.js`
+  first: it takes the screen canvas, paints the art's warm tone, draws the loading art with a tiny WebGL pass
+  (context handed to three.js clean), then starts the game (≤ 700 ms). Preview: art on screen at ~0.24 s.
+- **Network badge:** `src/native/net.ts` tracks ads / share / TikTok missions / sign-in; the canvas UI shows a small
+  spinning "Loading ad… / Connecting…" pill under the top bar while one waits; nothing waits on it.
+- `NOMIN=1 node scripts/build-tiktok.mjs` = readable game.js for profiling (never ship it).
+- Next: owner's iPhone `[go]` log for the GO hitch; optional logo downsizes (owner comparing zips).
+
+## 2026-10-25 — v4.0.2 (branch `v4.0`): race end rebuilt, board position moves, 21-item owner list
+
+- Done: see README v4.0.2 (revive panel, rank panel + one ad, 5-race average board position on client + server, instant Restart / Home, Finish card, Pause camera, More / Check-in / header / perk buttons, HUD specials, XWAVE wordmark, dust, LOW preset, Head Start ad removed, iOS audio guard, 110 → 70 boot shader programs).
+- Owner rules settled: Class never drops; board position = average of last 5 EXP races; Restart = last special else next in bag; interstitial only from the race-end panels; revive ad cooldown 0; free coins also in Shop.
+- Next: the HS dashboard must mirror tiktok.hs-dashboard.json (no rw_head_start, rw_revive cooldown 0); domain list needs games.wafflescouts.com; GLB is a data URL (base64 decode at boot) — a file load would shave more on Android.
+- Later the same day: weekly-board rank panel, softer coins, ad places renamed (car_run-life / car_run-end / car_run-free-coin / car-run-int — the phone log said "not configured": the HS dashboard Ads Config must be pasted with these labels), dust streaks (plan 1 + 2), Western reward popups, HUD BEATEN/NEXT, Home prewarm + 1.2 s loading minimum, offline check.
+- Not pushed (owner: push only when asked).
+
+## 2026-10-25 — v4.0.1 (branch `v4.0`): Gold Rush window + iPhone first load
+
+- Gold Rush: arriving at hh:15 still plays this hour's event until hh:30 (arithmetic slot, HH:MM without Intl, Home/popup refresh every 5 s + on resume). Test in `tests/bonus.test.ts`.
+- iPhone first-load stall (no-JIT JS): road tile 256 → 512 in background slices; colour probe right after the renderer; audio bank / reverb deferred out of the first tap; resumable music voices (`pluckSteps` / `harmonicaSteps` / `whistleSteps` / `masterSteps`). Measured with Chromium `--js-flags=--jitless` on the HS preview.
+- `[boot]` lines in the console (src/core/bootMark.ts) — ask the owner for an iPhone debug log if it still stalls.
+- Not pushed (owner: push only when asked). Test branch `test/video-autoplay` = v4.0 + Auto play / Game speed / test unlocks (local only).
+
+## 2026-10-25 — v4.0.0 (branch `v4.0`): native TikTok mini game — WIP
+
+- Branch `v4.0` = `main` (v1.0.9) + the native layer of Sky Roadster `v5.0` (same v4.6.1 base, merged), HS kit
+  3.2.4 / SDK 1.1.3 (`hs-sdk/`, `tiktok/hs-game.js`, `tiktok/hs-sdk.min.js`). `main` stays the H5 1.x game.
+- Owner's answers: new TikTok app (App ID 7700006034421647378 → `tiktok/project.config.json`, `GAME_ID` in
+  `src/native/hs.ts`), its HS SDK key in `hs.ts`, SAVE local, ads only (no shop), 5 places with the owner's ad unit
+  ids in `tiktok.hs-dashboard.json` (rw_revive / rw_end_bonus / rw_free_coins / rw_head_start 30 s, int_race_end
+  90 s; first 3 races ad-free). On native our own ad caps / pacing are off (kit 3.2.4 "no own ad guards").
+- Native UI reskinned: Western palette + fonts (Alfa Slab One / Rye TTF via tt.loadFont, `src/native/fonts/`), wood
+  panels, brass buttons, desert page background, wood header + coin bar, Home on the key art (HOME_LAYOUT; top bar
+  pinned under TikTok's capsule; DAILY sign; Launch / Share / Entry round buttons; More popup), Western special
+  buttons, Gold Rush clock. Audio: our Western audio + the mini-game Web Audio compat layer from v5.
+- Commands: `python3 scripts/native-images.py` · `node scripts/build-tiktok.mjs` · `node scripts/tiktok-tools.mjs
+  check|preview|pack` (pack → `tiktok-tiktok.zip`). hs-check: 0 fail, 0 warn. Package 3.83 MB (limit 4 MB).
+- NOT done yet: the full native QA (`scripts/qa/native.mjs`, its v5 hit keys) was not re-run to the end; the other
+  canvas screens are only recoloured (not checked one by one); the v1.0.5–1.0.9 web features are not in the canvas
+  UI yet (Outlaw Arsenal, 20 locked missions, tomorrow's dailies, rebuilt profile, Western avatars in some places).
+- Next: run native QA, check every screen, port the missing features, then upload (owner approves the upload).
+
+---
+
+## 2026-10-24 — v1.0.9: Entry button stays on Home
+
+- Web upload build: `node scripts/build-esbuild.mjs --web` → `dist-web/` (index.html + main.js 1.2 MB + assets/ with
+  images, the car GLB and fonts as separate cached files). Upload the folder's contents to any static host.
+- Owner: "vẫn thiếu 1 nút Entry (để dưới Share)" — the claimed Entry was hidden. All three small buttons always show,
+  order Launch · Share · Entry (`perkBadges` in UI.ts). Checks: typecheck, `npm test` 14 / 14.
+
+---
+
+## 2026-10-24 — v1.0.8: Outlaw Arsenal, more missions / dailies, Home perk buttons
+
+- Owner asks (late session, many small messages): 20 more specials unlocked by high coin prices, shown dimmed; ~20
+  locked missions ahead + more dailies; Entry / Launch / Share as small Home buttons, the sign = Daily; More even;
+  HIGH graphics default; no XWAVE on the car; training only for the basic specials.
+- Design choice (owner picked "1 kết hợp 2"): arsenal specials REUSE the three basic flights (no new physics →
+  Fairness untouched) and add perks via existing run fields (magnetT, shield, coins, invulnT). No doubleT / turbo perks
+  (server EXP verification). Save: `arsenal`, `arsenalItems`, `specialX`. Logic checked in the browser (unlock,
+  buy, pick, 2-use special spends one charge).
+- New career counters live in `save.career` (optional fields, old saves start at 0).
+- Next: owner feedback on arsenal prices / perks; maybe a dedicated Arsenal screen with bigger cards.
+
+---
+
+## 2026-10-24 — v1.0.7: Home = key art with its painted car
+
+- Owner: "Bỏ lớp mờ, lỗi bao quanh xe ở màn home". The removed-car area of home-bg.webp was a blurred dust fill; texture
+  synthesis (patch quilting) was tried and looked worse. Now Home keeps the painted car and hides the 3D car
+  (`HOME_SHOW.car3d`). To bring a 3D car back on Home (car picker), the owner needs a key art painted without a car.
+- Daily Reward popup rows restyled (were navy). Checks: typecheck, `npm test` 14 / 14, real-build regression, Home at 390×844 / 360×640, race car visible after Home.
+
+---
+
+## 2026-10-24 — v1.0.6: header coin bar no longer stretched
+
+- Owner: "Ô dấu sao ở top của các bảng đều bị méo". Cause: `.wallet` padding in % of the header width made the box 195 px
+  instead of 108 px, and the sprite is drawn at 100% × 100%. Fixed in western.css (px padding, border-box, 42 px high);
+  measured 2.85 : 1 on Daily / Shop / Top Pilots / Missions at 360 and 390 px.
+- Checks: typecheck, `npm test` 14 / 14.
+
+---
+
+## 2026-10-24 — v1.0.5: loading key art, smaller build, Western avatars, profile rebuild
+
+Owner: "Ảnh 1 nút bị móp, ảnh 2 hình launcher bị hoà vào nền, ảnh 3 chỗ detail bị sít, exp đổi màu, các avatar … loại khác
+cho hợp, làm lại profile … ảnh 5 nút share đổi màu, ảnh 6 chữ bị đè lên logo" + new loading art "đều cần tối ưu dung lượng".
+- See README v1.0.5. New: `src/ui/westernAvatars.ts` (32 medallions, same indices), `scripts/ui/make-wallet.py`
+  (`src/assets/images/ui/wallet.webp`), `scripts/car/pack-x1.mjs` (run it after `build-x1.mjs`; `tests/car.test.ts`
+  locks the packed hash + checks the geometry against `assets-src/x1/approved/…glb`), loading art source in
+  `assets-src/reference/loading-v2.webp`.
+- EXP plate (`XPT` in `src/meta/Rank.ts`) uses NO gradient ids: an svg `url(#id)` inside a hidden screen draws empty in Chrome.
+- Checks: typecheck, `npm test` 14 / 14, real-build regression 68 / 68, the owner's screens re-captured at 390×844; single file 5172 → 4421 KB.
+- Next: owner checks on the phone; GLB positions could also be quantized (needs node transforms) if more size is wanted.
+
+---
+
+## 2026-10-24 — v1.0.4: panel polish (owner's 9 phone screenshots), Home car picker off
+
+- Checks: typecheck, `npm test` 14 / 14, real-build regression 68 / 68, the owner's 9 screens re-captured at 390×844.
+- See README v1.0.4. Owner: "mọi thứ ngay ngắn ko có tình trạng chữ hay các border bị sát nhau … tạm thời bỏ chức năng chọn xe".
+- The "error when closing at the end of a race" = the demo interstitial ("AD · DEMO") — now only with `?addemo`.
+- Capture script for the owner's screens at 390×844: see scratch `nine.mjs` pattern (Settings, More, Profile, Top Pilots,
+  Daily, Entry, Missions, Gold Rush result, Launch, Share, Shop, Garage, Bag, race HUD).
+
+---
+
+## 2026-10-24 — v1.0.3: audio fixed + Western music, Home from key art v3, calmer colours, text review
+
+Owner: "âm thanh bị lỗi … big bugs, cho sound và music gần với phong cách mới … cowboy"; "thay home chuẩn như ảnh 1,
+tập ảnh trong file zip … màu không bị chói quá … biển quảng cáo, neon có chữ Sky Roadster đều thay … rà soát toàn bộ text".
+- Audio: root cause = Web Audio feedback-loop guitar (delay clamped to 128 samples → every note ~40 Hz). New
+  `src/audio/westernSynth.ts` + loop playback in `Audio.ts`; `npm test` includes `tests/audio.test.ts` (pitch, loops).
+- Home v3: `scripts/home/make-home-bg-v3.py` (+ `assets-src/home/v3/` cut-outs), `HOME_LAYOUT` re-measured.
+- UI palette toned down (western.css + desaturated wood textures); `GRADE` in config.ts for the 3D world.
+- Text: audit applied (see README v1.0.3). Kept "Pilot" and "LAUNCH" — the owner's v3 mockups use them.
+- Checks: typecheck, `npm test` 14 / 14 (incl. audio), real-build regression 68 / 68, audio start-up (first tap starts sound, music on, crash SFX audible), Home at 360×640 / 390×844.
+- Next: owner listens on a phone (music volume / mix), feedback on the new Home.
+
+---
+
+## 2026-10-24 — v1.0.2: Home = key art (owner: "ngoài home sử dụng y hệt ảnh 4 … xe ngoài home có thể lướt chọn được")
+
+- Home: painted key art background (`src/assets/images/home/home-bg.webp`, built by `scripts/home/make-home-bg.py`)
+  + sprites from the owner's UI sheet (`scripts/home/cut-sprites.py`, `dedot.py`, `blank.py`) placed in key-art
+  pixels (`src/ui/homeStage.ts`), + the 3D car (`src/render/HomeView.ts`, tuning `HOME_SHOW` in config.ts).
+- Swipe the car on Home (all 6 cars; owned = selected, locked = silhouette). Other car models: later (owner).
+- Header coin bar, Back / Close buttons, avatars 0–5, dice and logo now use the sheet graphics.
+- Checks: typecheck, `npm test` 13 / 13, real-build regression 68 / 68 (after making the gold Back / Close buttons flat and adding hidden labels to the image buttons), swipe test (owned → selected, locked → silhouette), Home at 360×640 / 390×844 / 820×1180.
+- Half-done / next: owner review on a phone; real per-car models; the cowboy portrait is the default avatar on Home
+  until the player picks one (other screens still show the emblem).
+
+---
+
+## 2026-10-24 — v1.0.1: first test release (owner: "Main sẽ là 1.0.1")
+
+- `VERSION` / package.json → 1.0.1; README changelog; the v1.0.0 review fixes are part of 1.0.1.
+- Test build: `builds/3d-car-run-v1.0.1.html` (single file) + a zip of the multi-file build sent to the owner; also published as a private artifact for a quick look.
+- Next: owner plays it on a phone (FPS, audio by ear), feedback → 1.0.2.
+
+---
+
+## 2026-10-24 — v1.0.0: 3D CAR RUN (new repo xwaveglobal/3d-car-run, from Sky Roadster v4.6.1)
+
+**Owner request**: new repo from the 4.6.1 branch; apply the FINAL MASTER PROMPT V2 (Western desert
+transformation, `assets-src/reference/`); the result is **v1** on `main`; the original stays on another branch.
+
+**Done** (report: `docs/carrun-v1/README.md`):
+- Branches: `archive/sky-roadster-v4.6.1` = the untouched original; `main` = 3D Car Run v1.0.0 (merged from `feat/carrun-v1`).
+- Branding everywhere a player looks; save keys / backend contracts / storage ids unchanged.
+- Western UI design system (`src/ui/western.css`), bundled fonts, More menu, Race Start screen (level picker moved off Home), Entry + Launch hide when claimed.
+- 16 desert places on the unchanged world ids (`src/render/western/`, `src/western/themes.ts`), new road, Western obstacles (same hitboxes), star coins, Western pickups, item / special names (`src/western/items.ts`).
+- GOLD RUSH — 3 MIN BONUS RUN (`src/meta/GoldRush.ts`, `tests/goldrush.test.ts`).
+- Western VFX (tyre dust, Nitro, rings), procedural Western soundtrack + wind, share card, i18n of the new labels.
+- `npm test` 13 / 13; real-build regression (Step 06.5 suite) 68 / 68 after updating 4 renamed-text expectations; Gold Rush QA in the real build (pause, countdown, pay-once, pay at time's up, restart mid-run banks coins); per-place + per-screen screenshots in `docs/carrun-v1/shots/`.
+- Review fixes: Gold Rush restart / time's-up payout, tall mine tunnel (HYPER / SKY ESCAPE fit), tunnel texture scroll, stagecoach wheels, far-prop fade bucket, last blue buttons (Garage select, Settings, Profile).
+- Draw calls (MEDIUM, real build): 85–109 per frame vs 128–277 in v4.6.1.
+
+**Build note (cloud)**: npm registry is blocked here → three + @types/three r169 were vendored into `node_modules/` from GitHub (git sparse clone), esbuild linked from /opt/npm-tools; build with `node scripts/build-esbuild.mjs`. On the owner's PC `npm install` works as usual.
+
+**Known / next**: phone FPS and audio by ear not checked (cloud only); place thumbnails on Race Start are crops of the owner's concept art; native / TikTok port not started (out of scope of this prompt).
+
+---
+
+## 2026-10-24 — v4.6.1: owner decisions (same branch `feature/sky-roadster-v4.6-big-update`)
+
+**Decided by the owner**:
+- Zenith is now ice blue.
+- Rarity labels follow the unlock class.
+- C / B / A promotions give coins plus one special (`CLASS_REWARD`).
+- Step 07 FINAL is closed: the experimental premium / arcade cameras and the PBR pass were removed (`docs/3d-upgrade/step07-final/README.md`).
+- `feature/sky-roadster-3d-v4.1` is kept as it is (no reset).
+
+**Step 06.5**: the QA (`scripts/qa/step065.mjs`) was rerun on v4.6 with the v4.6 / v4.6.1 garage and promotion expectations. Results and evidence are in `docs/gameplay-upgrade/step06-5/`. The class matrix doc was updated.
+
+**Next**: the owner approves Step 06.5 (v4.6.1). Native / TikTok sync and the merge to `main` happen only after approval. Phone FPS is still not measured.
+
+---
+
+## 2026-10-23 — v4.6.0 on NEW branch `feature/sky-roadster-v4.6-big-update` (owner requests)
+
+**Done**: 3D car 15 % taller (runtime Y scale, wheels compensated, GLB untouched — fingerprint test still green); home orbit kept inside the road (`CAMERA.home` yaw 0.24 ± 0.14); UI car pictures = renders of the 3D X1 per colourway (`src/assets/images/cars/*.webp`, `rear-*.webp`); ad revive adds no heart, shows only "REVIVED!"; Settings → Camera motion (default OFF: fixed view — lanes, jumps, dives never move / tilt the camera; Roadster / HYPER / SOS flights still lift it); flat-button rule no longer un-blackens locked car silhouettes. npm test 12 / 12. Shots: `docs/gameplay-upgrade/v4.6/`.
+
+**Done 2026-10-24 (owner list of 11)**: special button under the hearts + smaller; bigger car in the fixed view (screen-adaptive camera distance, `RENDER.carScaleFixed`); Home / Play no shadows; Garage AA + AAA dark (Nexus = AAA); Restart label; NORMAL on launch; Shop exchange at the top (item tap → exchange popup); running loading bar; post-race weekly rank board (`#runrank`, `aroundYou`); Bonus hourly / 30 min / 3 plays; training fixes (`scripts/qa/training.mjs`: 7 lessons, 0 obstacles driven through); cleanup (pre-3D sprite images, dead exports, needRocket paywall) + per-frame allocation fixes. Bundle 4.59 → 3.56 MB.
+
+**Note**: `feature/sky-roadster-3d-v4.1` still holds v4.5.0 (Step 06.5) — this branch starts from it. Vega and Zenith render identically (same white paint; Vega's red only lived in the old 2-D picture).
+
+**Next**: owner review; Step 06.5 approval still pending. No merge to `main`.
+
+---
+
+## 2026-10-23 — v4.5.0: Step 06.5 + Patch 02 (H5 gameplay) — STOP, waiting for approval
+
+**Done** (details, screenshots, test results: `docs/gameplay-upgrade/step06-5/`):
+- Audio starts from the first real tap (no Settings needed), resumed on every tap until running, suspended in background; crash SFX at the collision event (trigger ≈ 0.4 ms after it on the main thread; audible device latency not measured).
+- Pause: one frozen state, never auto Game Over (root cause: `'paused'` shared the revive countdown in `tick`).
+- Air Dash road item (outer lanes, safe-landing spawner guard, runtime `AirDashGuard`), airborne-only spoiler, item balance per level (`ITEM_BALANCE`), last-chance auto Roadster / HYPER / SOS (`Run.lastChance` → `Game.activateSpecial('AUTO_LAST_CHANCE')`), Magic Bag auto-equip (fills an empty special slot only), class unlock matrix (AA = Inferno only; S / SS / SSS future cars), first-time class celebration (A+), flat non-Home buttons, crash: car falls to the road + 3 real parts break off on the final crash.
+- Tests: new `tests/airdash.test.ts`, spoiler matrix in `tests/carMotion.test.ts` (npm test 12 / 12); real-build QA `scripts/qa/step065.mjs` 59 / 59 (+ `h5.mjs`, `audio-startup.mjs`, `item-balance.ts`). Artifact "Sky Roadster v4" republished (Version 10).
+- Step 07 FINAL was paused by the owner before it finished: WIP commit `a9e1476` (approved GLB lock + fingerprint test, camera candidates `?cam=premium|arcade`, PBR pass opt-in `?pbr=1`); defaults unchanged.
+
+**Open decisions for the owner**: where the old C / B / A / AAA cars go (mapped by rarity to S / SS / SSS; Nexus = future car without a condition) — `SKINS` in `src/render/Vehicle.ts`.
+
+**Known**: no phone / Native test (H5 only, SwiftShader in the cloud); audible audio latency and real-device FPS not measured.
+
+**Next**: owner reviews Step 06.5 → approval. Do not start Step 07 / Native sync before that.
+
+---
+
+## 2026-10-23 — v4.4.1: X1 car model restored to v4.2.0 (owner request)
+
+**Done**: owner preferred the v4.2.0 car (Step 04 screenshots). Restored the game GLB, `scripts/car/x1-builder.ts` and `tests/car.test.ts` from `d222b92`; other v4.2.1–v4.4.0 work kept. Step 06 / 07 models saved in `assets-src/x1/rollback/` (+ masters); their builder lives in commit `d00b71c`. Step 05 finished: screenshots 01–13, no-DOM smoke 10/11 (context restore fails without canvas events — native open item), env self-test 6/6. The clean MEDIUM / HIGH re-profile was dropped by the owner ("bỏ đo hiệu năng step 05"); MEDIUM / HIGH timings stay marked invalid.
+
+**Known**: Step 06/07 reports describe the rolled-back car; the studio / compare tools now build the v4.2.0 car by default. Phone FPS still not measured; TikTok native not ported.
+
+**Next**: owner decides the next step.
+
+
+## 2026-10-23 — v4.4.0: 3D upgrade Steps 05 → 07 (readability / perf, X1 reconstruction, shorter rear)
+
+**Done**:
+- Step 05 (v4.2.1): thin gold Ring Coins + collect fade; airborne camera (BALANCED / LOW rise with the car); particle density per preset, LOW 256 road texture; city silhouettes / window variety; `?perf=1` (`src/core/perf.ts`); context-loss handling; `scripts/perf/profile.mjs`; no-DOM smoke test (`scripts/native/`); preset-switch texture leak fixed (`Renderer.disposeComposer`). Report: `docs/3d-upgrade/step05/` (MEDIUM / HIGH timings invalid — contended run).
+- Step 06 (v4.3.0): X1 matched to the rear master with studio renders + automated silhouette comparison (`scripts/car/x1-studio.ts`, `studio-x1.mjs`, `compare/*.py`); master model `--detail=master`; mesh fixes. Report: `docs/3d-upgrade/step06/reconstruction/`.
+- Step 07 (v4.4.0): rear overhang 0.94 → 0.84 m (`REAR_K`), roof frame, body-colour closed spoiler, black glass (owner), smaller intake, diffuser ramp; real gameplay camera (`scripts/car/game-camera.ts`), real-game state captures (`scripts/car/gameplay-states.mjs`). Rollback GLBs in `assets-src/x1/rollback/`. Report: `docs/3d-upgrade/step07/`.
+
+**Known**: rear-3/4 ≥ 0.85 is met through a re-calibrated camera, not geometry (documented); Step 05 MEDIUM / HIGH timings need a clean rerun; Step 05 screenshot set 01–12 not produced; TikTok native not tested (v4 not ported); no Blender in the cloud session.
+
+**Next**: owner reviews Step 07 → Step 08. Do not merge to `main` / submit to TikTok without approval.
+
+---
+
+## 2026-10-23 — v4.2.0: 3D upgrade Step 04 — procedural road, night city, graphics presets, Turbo aura
+
+**Done**: `roadSurface.ts` (pure, tested) → road DataTextures in `Track` (asphalt grain, tyre tracks, shoulders, dashed dividers / edge lines / studs from LANES; joints + lamp light pools in the road shader), steel rails, LED lamp streaks, roadside XWAVE signs, `envFx.addFarFade` (recycled props fade in from the haze — no popping). City: night palette, neon on the near buildings, XWAVE boards, distant city lights, shared billboard materials. Graphics LOW / MEDIUM / HIGH (`GRAPHICS` in config, default MEDIUM, save migration HIGH → MEDIUM once, Settings LO / MED / HI). Turbo aura (owner note). Tests: 11 suites / 217 checks; `test:envshots` 4/4, `test:vfx` 24/24 in real WebGL. Report: `docs/3d-upgrade/step04/README.md`.
+
+**Known**: phone FPS not measured; Home draws ~20–30 more calls on MEDIUM / HIGH (city extras); only Future City got the night palette; Vite + TikTok native not run here.
+
+**Next**: owner reviews Step 04 → Step 05. Do not start before approval.
+
+---
+
+## 2026-10-23 — v4.1.3: 3D upgrade Step 03.2 — front end, pop-up spoiler, premium VFX, dive pose
+
+**Done**: generator front rework (rounded nose, tucked splitter, intake + air curtains, LED headlights draped on the paint by ray cast, seams, pearl paint, darker glass) and the front-wheel fix (side profile cut at the arch line — it used to fold around the tyre; 0.34 m front tyre, elliptical arch, black liners). Pop-up spoiler (rise 6 cm + 22°, wedge skirt). `CarFx.ts`: shield aura shell (old grey mote cloud removed for the 3D car), ghost / pickup edge light compiled into the car materials, pooled crash shards + flash; `MeshCar`: soft 3-layer nitro, DOWN press-down pose, settle on game over, prewarm. `carMotion.carHeight`: in the air the 3D underside never hangs below the hitbox (visual only). Traffic hover pods tucked inside their collision width. Countdown shake fixed (car + camera were stepped twice per frame with two speeds). `?debug=collision` overlay. Tests: 10 suites / 190 checks; `npm run test:vfx` 21/21 in real WebGL. Report: `docs/3d-upgrade/step03-2/README.md`.
+
+**Known**: car still longer / wider than the hitbox (inherent, documented); thin seams can shimmer at distance on low-DPI screens; front nose fillet shows a faint shading crease (hidden under the bumper seam); FPS not measured on a phone; Vite + TikTok native not run here.
+
+**Next**: owner reviews Step 03.2 → Step 04. Do not start before approval.
+
+---
+
+## 2026-10-23 — v4.1.2: 3D upgrade Step 03.1 — shorter, mirrorless, jump spoiler
+
+**Done**: builder `LENGTH_CUT` 0.08 (front-half z-warp, arches kept round; `build-x1.mjs --cut=`), mirrors deleted, `spoilerUpdate()` (jumping = `Player.vmode === 'up'` ‖ nitro, 0.25 s hold), `Vehicle.crashRecoil()` (visual nose setback at crash). Tests: spoiler transitions with the real Player, mirror / length / wheelbase / rear-unchanged checks. 10 suites / 175 checks pass; esbuild builds pass. Report: `docs/3d-upgrade/step03-1/README.md`.
+
+**Known**: car (3.23 m) still longer than the 2 m hitbox — near-misses can visually brush; splitter shows a little ahead of the nose; Vite + TikTok not run here.
+
+**Next**: owner reviews Step 03.1 → Step 04. Do not start before approval.
+
+---
+
+## 2026-10-23 — v4.1.1: 3D upgrade Step 03 — rear bumper, active spoiler, cameras
+
+**Done**: builder rear rebuilt (solid `Rear_LowerBumper` + recessed `Diffuser`, `Spoiler_Pivot`/`Spoiler`, sockets in the recess, rail/rods/tubes deleted); `carMotion.ts` (pure, tested); `MeshCar` spoiler / yaw / ghost fade; `CAMERA` presets + `CAMERA.home` in `config.ts`, `CameraRig.car3d` / `presetOverride`; `Game.ts`: 3D car stays visible while dying, `rig.car3d` set on skin / model ready. New tests `test:camera`, `test:motion`; `test:car` extended. 10 suites / 155 checks pass; esbuild builds pass; Vite + TikTok not run. Report: `docs/3d-upgrade/step03/README.md`.
+
+**Known**: crash frame — car longer than hitbox, obstacle overlaps the hood; no 3D crash shatter / aura; glass still greyish in studio light.
+
+**Next**: owner reviews Step 03 → Step 04. Do not start before approval.
+
+---
+
+## 2026-10-23 — v4.1.0: 3D upgrade Step 02 — 3D XWAVE X1
+
+**Done**: refined X1 model (scripted builder `scripts/car/x1-builder.ts` → `src/assets/models/xwave-x1.glb`, 31.9k tris), own GLB reader `src/render/car/glbParse.ts` (no GLTFLoader / fetch / TextDecoder for bundled data), `src/render/car/MeshCar.ts` wired into `Vehicle.ts` (rear image = fallback until loaded, `?car=sprite` to compare), `RENDER` block in `config.ts`, `tests/car.test.ts`. Typecheck, 8 test suites, esbuild builds pass; Vite build and TikTok native not run here. Report + screenshots: `docs/3d-upgrade/05-step02-vehicle.md`, `docs/3d-upgrade/step02/`.
+
+**Half-done / known**: glass too light + seats barely visible, rear tyres partly hidden, diffuser too light, no Phase Ghost / aura / crash shatter for the 3D car, nose extends ~0.8 m past the hitbox (visual only), GLB 949 KB unoptimised. Tag `v4.0.1` still needs pushing from the PC.
+
+**Next**: owner reviews Step 02 → Step 03 (rear chase camera). Do not start before approval.
+
+---
+
+## 2026-10-23 — 3D upgrade Step 01: audit (no game code changed)
+
+**Done**: branch `feature/sky-roadster-3d-v4.1` (from `v4.0.1`), audit docs in `docs/3d-upgrade/` (01 source audit, 02 architecture, 03 roadmap, 04 baseline tests). Key finding: the car on screen is a 2D studio image (billboard in an overlay pass, `render/Vehicle.ts`), not a 3D model; a hidden procedural car and a GLB hook exist. `npm test` passes; typecheck/build could not run here (npm registry blocked in the cloud session).
+
+**Half-done**: tag `v4.0.1` exists only in the cloud clone (tag push refused) — create + push it from the PC (`04-baseline-test-results.md`).
+
+**Next**: owner approves the plan and chooses the X1 3D source (model file / model from images / AI image-to-3D) → Step 02 (3D vehicle). Do not start Step 02 before that.
+
+---
+
+## 2026-10-23 — v4.0.1: branch `v4.0.1` for the 3D upgrade
+
+**Done**: new branch `v4.0.1`, started from the H5 web game v2.3.0 (branch `v2`), not from `main` (v3 native) — owner chose H5 as the base because it is easier to upgrade to better 3D. VERSION → v4.0.1, AGENTS.md workflow lists all four branches.
+
+**Next**: the 3D upgrade itself (render/ — lighting, shadows, models, road, city, effects), keeping gameplay/fairness unchanged.
+
+---
+
+## 2026-10-22 — v2.3.0: accounts & cloud save (owner chose "cách 2", server coming)
+
+**Done**: `src/net/Cloud.ts` (guest token, email code, Google/Apple via server-side OAuth popup/redirect, GET/PUT /save with rev + 409 conflict, run queue), Game: `cloudSync` / `resolveCloud` / `applyCloud` (writes the cloud save then reloads) / `cloudAction` / `reportRun`; UI: Settings → Account popup, "Which progress?" chooser. Server rewritten: `server/index.mjs` + `server/core.mjs` + `schema.sql` + README (env vars, go-live). Tested end-to-end headless with a local server: device A (4,600 EXP, 7,054 coins) signs in by email → device B fresh install signs in → same progress restored.
+
+**To go live**: host the server (HTTPS), set env (README), put the address in `CLOUD.api` (src/config.ts), rebuild. Google needs an OAuth Web client; Apple needs a Services ID + key; email needs a mail key (Resend) or another mailer in `sendCode()`.
+
+**Next**: switch the leaderboards to the server boards when the server is live (PlayerStore already has `RemotePlayerStore`).
+
+---
+
+## 2026-10-22 — v2.2.8: Home = owner mock-up
+
+**Done**: CSS block "v2.2.8 — Home exactly like the owner's mock-up" at the end of `ui.css`; stars in the speed selector, `ROCKET_W` / `CAR_LINE` icons, `.pchev` on PLAY.
+
+---
+
+## 2026-10-22 — v2.2.7
+
+**Done**: removed the v2.2.5 Home button overrides (owner wants Home exactly as his 08:50 screenshot); glossy icon-button rule now skips `#start`.
+
+---
+
+## 2026-10-22 — v2.2.6: glossy buttons everywhere
+
+**Done**: one CSS block at the end of `ui.css` (`#ui .screen .btn:not(.mbtn)` + `.icon-btn`) restyles every button.
+
+---
+
+## 2026-10-22 — v2.2.5: Home polish
+
+**Done**: all-time #rank badge on the Home avatar (`homeSync.allRank`), glossy mini buttons, animated PLAY.
+
+---
+
+## 2026-10-22 — v2.2.4: owner round AA
+
+**Done**: AA1–AA5 (see README). Root cause of the dead Retry: `#specialpick` was stacked under `#gameover` / `#pause` (same z-index, earlier in the DOM). Pause → Home now calls `gameOver()`. Difficulty: `PHASES` D/C/B and `PHASE_UNLOCK` shifted one step earlier (v1 rhythm); `COIN_LINES.endless` = v1 values. All tests pass (hard-row shares still rise phase by phase).
+
+---
+
+## 2026-10-22 — v2.2.3: owner round Z
+
+**Done**: FIXLIST Z1–Z12. `World.step` eases speed; `UI.hudLevel/hudTop` + `.hnext`; `ADS.endBonus`; COIN_LINES endless 0.545 / bonus 0.5; `GIFTS.boxChance` 0.15, `boxGap` 600; Bonus power slots 240–380 m; `BONUS.finishCoins` 300.
+
+**Speed check**: Easy / Normal / Hard = 62 / 91 / 113 km/h at the start → 124 / 184 / 228 km/h at 6 km (plus rank-phase bumps).
+
+---
+
+## 2026-10-22 — v2.2.2: owner round Y
+
+**Done**: FIXLIST Y1–Y6 (see README). `Run.coin2T` (ring double coins), `Game.shareGameLink`, `carRear` for the share card, speeds Normal 1.21 / Hard 1.5 with EXP rates 0.184 / 0.19 / 0.318, Bonus special chance 0.065.
+
+---
+
+## 2026-10-22 — v2.2.1: hotfix
+
+**Done**: Tutorial card opened from Home → close → Home had no buttons (it was shown alone, not over Home). Fixed in `openTutorialIntro` + close goes through `closeModal`.
+
+---
+
+## 2026-10-22 — v2.2.0: owner rounds H–X done
+
+**Done**: all of `docs/FIXLIST.md` H–X (see README "v2.2.0"). New code: `meta/Career.ts` (career missions), `ui/ShareCard.ts` (share image), `render/BonusTunnels.ts`, `Spawner.setPieces / buildSetPiece / tunnels`, `World.injectRows`, `GIFTS` + `BONUS_SET` in config, `tests/bonus.test.ts`.
+
+**Notes**: double EXP can push the run's EXP ahead of the distance-based rank gates (by design request). Base road speed still rises slowly with distance / rank phase on Endless (turbo itself now eases back to that base). Headless checks only — feel of slow-mo swing, set pieces and tunnels needs a phone test.
+
+**Next**: owner playtest; rear renders for Volt / Phantom / Inferno / Nexus; delete dead v1 code (cups, courses, MissionTracker, upgrades, pass).
+
+---
+
+## 2026-10-22 — v2.1.0: owner fix list done
+
+**Done**: everything in `docs/FIXLIST.md` (A–G) — see README "v2.1.0". New: `ENDLESS_LADDER` / `ladderAt` / `nextWorldAt` (Spawner), 7 ladder sceneries (`buildLadder` in Scenery), themed obstacle props per place (`buildThemed` / `buildLadderProp` in ObstacleViews, keyed pools), `HEARTS`, XWAVE Vega (`rear` skin field), emblem avatars, `docs/assets-inbox/` (owner's original logo + car image).
+
+**Notes**: F1 (home buttons missing after training) could not be reproduced headless; Home now force-resets training overlays/state. Tests: `tests/phases.test.ts` also checks the 12-world order.
+
+**Next**: owner playtest on phone; rear renders for Volt / Phantom / Inferno / Nexus; remove dead v1 code (cups, courses, MissionTracker, upgrades, pass).
+
+---
+
+## 2026-10-22 — v2.0.3 → v2.0.8: v2 steps 3–8 done (owner: "auto làm đủ hết")
+
+**Done** (details in README per version):
+- 3 Tracks & cars: Endless + Mega Rush (Track 2, opens at AAA, ranks S/SS/SSS) + 3 "coming soon"; cars unlock by rank only; Endless uses the chosen speed level.
+- 4 Specials & coins: one special per race (popup on track tap), buy with coins, Magic Bag rules, AAA teaser specials, coin-only shop, v1 refunds (`save.v2`).
+- 5 Revive by rewarded ad (max 2), interstitial after each race unless Remove Ads.
+- 6 New ~60 s training on first Play.
+- 7 Bonus events every 2 h (desert / forest / country / sea scenery, 30-min road with finish, coins only, auto-firing specials incl. Wall Run / Tunnel Rider / Sky Rail / Phase Ghost) — replaces cups.
+- 8 Daily + Missions merged (coins), coin balance.
+
+**Still in the code but unused** (safe to delete later): old cups (`meta/Events.ts`, events screen), 20 courses (`gameplay/Courses.ts` except the Course type), `MissionTracker`, garage upgrades, XWAVE Pass / bundle code paths.
+
+**Notes / next**
+- Owner to send rear PNGs of Volt / Phantom / Inferno / Nexus (cars are still tints of Zenith).
+- Bonus obstacles still use the neon city props; themed props (rocks, logs, buoys…) would make the places feel more real.
+- All checks were headless (0.5 fps); test feel on a phone: `?rank=A` etc. on localhost.
+
+---
+
+## 2026-10-22 — v2.0.2: v2 step 2 (difficulty phases & rank gates)
+
+**Done**: GAME-DESIGN §8 step 2 — see README "v2.0.2". Code: `PHASES`/`PHASE_UNLOCK`/`GATE`/`phaseAt`/`rankDist` in `gameplay/Difficulty.ts`; `Spawner.zoneAt`/`phaseSpeed`/`phaseCfg` (Endless only — old courses still use `MAPS`); `World.reset(..., startDist)`; HUD gate strip `UI.gateHud`; `tests/phases.test.ts` in `npm test`.
+
+**Notes**: tune difficulty in `PHASES` / `GATE`; if phase speeds change, re-run the calibration (tests/exp.test.ts shows the minutes) and adjust `EXP.rank`. Verified with headless autopilot only — owner should try `?rank=A` etc. on a phone.
+
+**Next**: step 3 — tracks & cars (Endless + track 2 at AAA + 3 "coming soon"; cars unlock by rank).
+
+---
+
+## 2026-10-22 — v2.0.1: v2 step 1 (EXP & rank)
+
+**Done**: GAME-DESIGN.md §8 step 1 — see README "v2.0.1". New: `EXP` config, `expFor`/`rankMinutes` in `meta/Rank.ts`, `Run.exp`, `save.expBest`/`expWeek`, `tests/exp.test.ts` (in `npm test`).
+
+**Interim (removed in later steps)**: cups, track stars, 20 courses, upgrades, old items still exist; cups no longer give rank points. Track 2's S/SS/SSS ranks are not in `CLASSES` yet (step 3).
+
+**Links**: v2 test build = NEW artifact https://claude.ai/artifact/ENuX27c3FrNtRSEYtkXETG (publish `builds/sky-roadster-v2.html`). The old artifact QFASRhp6EQAWvJdu7Djwxr stays v1.
+
+**Next**: step 2 — difficulty phases by distance + rank gates.
+
+---
+
+## 2026-10-22 — v2 game design locked (no code yet)
+
+**Done**: owner and Claude locked the v2 design in `docs/GAME-DESIGN.md`: EXP = skill rating (best run), D→AAA (+S/SS/SSS on track 2), Coin is the only currency (special items only), Endless + 1 AAA track, Bonus events every 2 h, revive max 2× by ads only. `ECONOMY.md` is now marked superseded.
+
+**Branches**: `v1` = old game frozen at v1.19.1 (commit 51c08a9), still maintainable. `main` = v2 development.
+
+**Next**: implement GAME-DESIGN.md §8 step by step (1: EXP & rank).
+
+---
+
+## 2026-10-21 — v1.19 / v1.19.1: speed feel + tyre rotation per owner's reference
+
+**Done**: speed blur post pass + side streaks (v1.19); v1.19.1 = bag only in Profile, stale glow after death fixed, side walls in `Track.ts`, tread scroll synced to ground speed (`TYRE.treadTileM`), air free-spin, pitch. See README.
+
+**Notes**: tyre/blur tuning lives in `TYRE` (config.ts). Verified only in headless 0.5 fps — get real-device feedback. Artifact: https://claude.ai/artifact/QFASRhp6EQAWvJdu7Djwxr (file `builds/sky-roadster-v1.18.html`).
+
+---
+
+## 2026-10-21 — v1.18: big UI/meta pass (owner's 13-point list + popup/daily/car mock-ups)
+
+**Done**: see README "v1.18 changes". New modules: `src/ui/art.ts` (popup illustrations), `src/meta/Country.ts`, `docs/ECONOMY.md`. Car art in `src/assets/images/cars/` was cropped from the owner's line-up sheet.
+
+**Pending / notes**
+- Car-specific skills (Ion Burst, Phase Shift, Fire Trail…) are shown as "SOON". They are not implemented.
+- In-race car sprite is still the X1 render, tinted per car. The owner will send high-res transparent rear renders of the 5 cars; swap them into `X1_VIEWS` / per-skin textures.
+- Daily Day 4 / Day 7 in the mock-up show cars. The rewards stay items/coins (cars are class-gated); revisit if cars become daily prizes.
+- Mega Gate aiming was typechecked + unit-tested, but not played through in a browser (the 0.5 fps headless run was stopped).
+- The old artifact link stopped accepting updates (validator false positive), so v1.18 was published as a NEW artifact: https://claude.ai/artifact/QFASRhp6EQAWvJdu7Djwxr. Update that one from now on.
+- Emoji flags render as letters on Windows Chrome (OS limitation).
+
+---
+
+## 2026-10-21 — v1.17: ROADSTER button, leftover points, wheel speed
+
+**Done**
+- Training: early ROADSTER tap → nudge + toast instead of silent ignore (`Game.useRocket`, `UI.rocketWait`).
+- ROADSTER button glows + "TAP!" when the danger hint says a jump is needed (`UI.danger` → `.ready`), same look as the training `.call` state.
+- Bug fix: ROADSTER/SOS count badges never updated (`data-h` was missing on the badges).
+- Track finish: unused Roadster/HYPER/SOS charges converted to points (`Game.cashLeftovers`, `LEFTOVER_POINTS`), and shown on the result screen.
+- Tyres: per-frame capped tread step (no wagon-wheel strobing), longer blur and streaks, tyre spray particles (`TYRE` config, `Game.tyreSpray`, `Vehicle.rearTyreWorld`).
+- `builds/sky-roadster-v1.17.html` (single file) replaces v1.16 and is published to the Claude artifact link.
+
+**Notes for the next session**
+- The cloud workspace has no npm registry access. Builds there use bun with three.js r169 fetched from GitHub, so they are not byte-identical to `vite build`. The owner's PC runs the real `npm run dev`.
+- Wheel feel was checked only in a 0.5 fps headless browser. Get the owner's feedback on real devices and tune with `TYRE.*`.
+
+**Next**
+- (owner to fill in)
+
+---
+
+## 2026-10-21 — Moved to GitHub (v1.16)
+
+**Done**
+- Imported the project from a Claude chat (zip of the source + single-file HTML build).
+- Verified the HTML build matches this source (both `v1.16`); kept it as `builds/sky-roadster-v1.16.html`.
+- Added `AGENTS.md`, `CLAUDE.md`, this file. GitHub is used only for version control (no CI / Pages).
+- Added `SkyRoadster-Dev.bat` + `scripts/dev-autopull.ps1`: owner double-clicks once on Windows; it runs `npm run dev` and pulls `main` every 20 s so localhost follows every push.
+- Online test link = Claude artifact (republished from `builds/` single-file HTML on each release).
+
+**Known gaps**
+- `README.md` changelog stops at v1.14; code is at v1.16 (CSS notes mention v1.15.x changes: "+" next to coins opens Watch-Ad reward, big pickup title, collect flyers). Write the v1.15 / v1.16 changelog sections when known.
+- No `package-lock.json` (the auto-pull script installs with `--no-package-lock` so a local lockfile never blocks `git pull`). If a lockfile is committed later, drop that flag.
+- `package.json` name is still `xwave-flying-run` (old name). Harmless; rename if wanted.
+- `server/` is a reference implementation only (JSON file storage, no auth).
+
+**Next**
+- (owner to fill in: next features / bugs)

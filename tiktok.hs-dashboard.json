@@ -1,0 +1,84 @@
+{
+  "iaa_config": {
+    "placements": [
+      {
+        "label": "car_run-life",
+        "ads": [
+          {
+            "id": "ad7699423177315469319",
+            "config": {
+              "cooldown": 0
+            }
+          }
+        ]
+      },
+      {
+        "label": "car_run-end",
+        "ads": [
+          {
+            "id": "ad7699414834114840594",
+            "config": {
+              "cooldown": 30
+            }
+          }
+        ]
+      },
+      {
+        "label": "car_run-free-coin",
+        "ads": [
+          {
+            "id": "ad7699414196535052296",
+            "config": {
+              "cooldown": 30
+            }
+          }
+        ]
+      },
+      {
+        "label": "car-run-int",
+        "ads": [
+          {
+            "id": "ad7699420040583989266",
+            "config": {
+              "cooldown": 90
+            }
+          }
+        ]
+      }
+    ],
+    "rewards": {
+      "share": {
+        "coins": 300,
+        "$limit": "daily"
+      },
+      "tiktok_profile": {
+        "coins": 300
+      },
+      "tiktok_shortcut": {
+        "coins": 300
+      }
+    },
+    "items": {
+      "coins": {
+        "category": "currency",
+        "name": "Coins"
+      },
+      "super": {
+        "category": "consumable",
+        "name": "Canyon Launcher"
+      },
+      "hyper": {
+        "category": "consumable",
+        "name": "Eagle Jump"
+      },
+      "escape": {
+        "category": "consumable",
+        "name": "Last Stand"
+      },
+      "no_ads": {
+        "category": "unlock",
+        "name": "No Ads"
+      }
+    }
+  }
+}
